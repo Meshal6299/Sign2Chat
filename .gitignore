@@ -1,0 +1,21 @@
+# Python junk
+__pycache__/
+*.py[cod]
+*$py.class
+.env
+.venv
+env/
+venv/
+
+# Large Files (Data & Models)
+data/
+checkpoints/
+*.mp4
+*.pth
+*.h5
+*.pkl
+
+# IDE settings
+.vscode/
+.idea/
+.DS_Store
