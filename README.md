@@ -1,4 +1,7 @@
 # Sign2Chat: Real-Time Sign-to-English Translation with an Assistive Chatbot🤟🤖
+**Course:** CSAI405 - Conputer Science AI Capstone Project.
+
+**Institution:** The British University in Dubai
 
 ## 📖 Overview
 
@@ -15,11 +18,15 @@ The system focuses on robustness, low-cost deployment (using standard webcams), 
 
 ## 🛠️ System Architecture
 
-The pipeline consists of three main stages:
+This System consists of fours Layers:
 
-1. **Visual Recognition:** Extracting skeletal landmarks (x, y, z coordinates) from webcam video.
-2. **Sequence Modeling:** Classifying the stream of coordinates into linguistic units (words/phrases).
-3. **Conversational Integration:** Smoothing the output and generating a response.
+- Layer 1: **User Enviroment (*The Input*)**: This layer manages the hardware interface. It captures the raw video feed from the user's webcam and prepares the environment for the signer.
+- Layer 2: **Computer Vision (*The Skeleton*)**: This is the perception module. Instead of processing raw pixels, we utilize MediaPipe to extract 543 skeletal landmarks (hands, pose, face) per frame, creating a lightweight and privacy-preserving data stream.
+- Layer 3: **Sequence Recognition (*The Logic*)**: This is the core Deep Learning module. A rolling buffer collects frames over time and feeds them into an LSTM/Transformer model to classify dynamic gestures into discrete linguistic units (words).
+- Layer 4: **Application & Chatbot (*The Interface*)**: This layer handles the output and dialogue. It smooths the predicted signs into fluent English using NLP, generates a conversational response via the Chatbot, and converts that response into audio using Text-to-Speech (TTS). 
+
+
+<img src="./docs/4layers.svg" alt="alt text" height="1200"/>
 
 ## 📂 Repository Structure
 
@@ -28,11 +35,8 @@ Sign2Chat/
 ├── data/              # Dataset files (WLASL) - *Not tracked by Git*
 ├── notebooks/         # Jupyter notebooks for EDA and experiments
 ├── src/               # Source code
-│   ├── data_loader.py # Scripts to process video to landmarks
-│   ├── model.py       # LSTM/Transformer Architecture
-│   ├── app.py         # Main Application (UI)
-│   └── utils.py       # NLP and TTS helper functions
 ├── checkpoints/       # Trained model weights
+├── docs/              # Reports and resources for documentation
 ├── requirements.txt   # Python dependencies
 └── README.md          # Project documentation
 ```
@@ -60,3 +64,5 @@ pip install -r requirements.txt
 ### Running the App
 
 *Will be added later*
+
+
