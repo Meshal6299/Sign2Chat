@@ -45,3 +45,26 @@ Sign2Chat/
 ├── ai_lab/               # The Python Research Lab
 │
 └── README.md             # Project Documentation
+```
+
+## 📊 Dataset Setup
+This project utilizes the WLASL (World Level American Sign Language) dataset. Because the dataset contains over 21,000 videos and exceeds GitHub's storage limits, the video files must be downloaded and added manually to your local environment.
+
+ 1. Download the Video Files: https://drive.google.com/file/d/1FQSqG00QueCo00fgDLf2lrUg01IMe63M/view?usp=sharing
+ 2. Installation Instructions: \
+ 2.1. Extract the downloaded **video.zip** on your machine. \
+ 2.2. Locate the extracted videos folder. \
+ 2.3. Move the entire videos folder into the dataset/ directory of this project.
+
+now the dataset folder should look like this
+```
+dataset/
+├── videos/              <-- (21,095 .mp4 files should be inside here)
+├── nslt_100.json
+├── nslt_300.json
+├── nslt_1000.json
+├── nslt_2000.json
+├── WLASL_v0.3.json
+├── wlasl_class_list.txt
+└── missing.txt
+```
