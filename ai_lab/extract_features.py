@@ -1,90 +1,70 @@
 import cv2
 import mediapipe as mp
-import numpy as np
 import os
-import json
-from mediapipe.tasks import python
-from mediapipe.tasks.python import vision
+import numpy as np
 
-# --- CONFIGURATION ---
-VIDEO_DIR = "dataset/videos/"
-JSON_PATH = "dataset/nslt_100.json"
-OUTPUT_DIR = "processed_data"
-MODEL_PATH = "ai_lab/hand_landmarker.task"  # The file you just downloaded
+DATA_PATH = os.path.join('dataset', 'videos')
+OUTPUT_PATH = os.path.join('dataset', 'processed_data')
+MODEL_PATH = os.path.join('ai_lab', 'hand_landmarker.task')
 
-if not os.path.exists(OUTPUT_DIR):
-    os.makedirs(OUTPUT_DIR)
+if not os.path.exists(OUTPUT_PATH):
+    os.makedirs(OUTPUT_PATH)
 
-# --- INITIALIZE MEDIAPIPE TASKS ---
-base_options = python.BaseOptions(model_asset_path=MODEL_PATH)
-options = vision.HandLandmarkerOptions(
-    base_options=base_options,
-    num_hands=2,
-    min_hand_detection_confidence=0.5,
-    running_mode=vision.RunningMode.VIDEO # Optimized for frame sequences
+BaseOptions = mp.tasks.BaseOptions
+HandLandmarker = mp.tasks.vision.HandLandmarker
+HandLandmarkerOptions = mp.tasks.vision.HandLandmarkerOptions
+VisionRunningMode = mp.tasks.vision.RunningMode
+
+options = HandLandmarkerOptions(
+    base_options=BaseOptions(model_asset_path=MODEL_PATH),
+    running_mode=VisionRunningMode.IMAGE,
+    num_hands=2
 )
-detector = vision.HandLandmarker.create_from_options(options)
 
-def extract_landmarks(video_path):
-    # Move detector initialization INSIDE the function to reset the clock for each video
-    base_options = python.BaseOptions(model_asset_path=MODEL_PATH)
-    options = vision.HandLandmarkerOptions(
-        base_options=base_options,
-        num_hands=2,
-        min_hand_detection_confidence=0.5,
-        running_mode=vision.RunningMode.VIDEO 
-    )
+def extract_landmarks(video_file, landmarker):
+    cap = cv2.VideoCapture(video_file)
+    sequence = []
     
-    # Create a fresh detector for this specific video
-    with vision.HandLandmarker.create_from_options(options) as detector:
-        cap = cv2.VideoCapture(video_path)
-        video_data = []
-        fps = cap.get(cv2.CAP_PROP_FPS)
-        
-        # Fallback if FPS is not detected correctly
-        if fps <= 0: fps = 30 
-        
-        frame_count = 0
-
-        while cap.isOpened():
-            success, frame = cap.read()
-            if not success:
-                break
-
-            mp_image = mp.Image(image_format=mp.ImageFormat.SRGB, data=frame)
-            frame_timestamp_ms = int(1000 * frame_count / fps)
-            
-            detection_result = detector.detect_for_video(mp_image, frame_timestamp_ms)
-
-            frame_landmarks = np.zeros((21, 3))
-            if detection_result.hand_landmarks:
-                hand = detection_result.hand_landmarks[0]
-                for i, lm in enumerate(hand):
-                    frame_landmarks[i] = [lm.x, lm.y, lm.z]
-            
-            video_data.append(frame_landmarks)
-            frame_count += 1
-
-        cap.release()
-        return np.array(video_data)
-
-# --- MAIN EXECUTION ---
-def run_batch_processing():
-    with open(JSON_PATH, 'r') as f:
-        data_map = json.load(f)
-
-    print(f"🚀 Tasks API: Processing {len(data_map)} videos...")
-
-    for video_id, info in data_map.items():
-        video_path = os.path.join(VIDEO_DIR, f"{video_id}.mp4")
-        output_path = os.path.join(OUTPUT_DIR, f"{video_id}.npy")
-
-        if os.path.exists(output_path) or not os.path.exists(video_path):
+    # We want exactly 30 frames per video for the LSTM model
+    for frame_num in range(30): 
+        success, frame = cap.read()
+        if not success:
+            # If video is shorter than 30 frames, pad with zeros
+            sequence.append(np.zeros(21 * 3 * 2)) # 21 points * (x,y,z) * 2 hands
             continue
 
-        landmarks = extract_landmarks(video_path)
-        np.save(output_path, landmarks)
-        print(f"✅ Extracted {video_id} ({len(landmarks)} frames)")
+        mp_image = mp.Image(image_format=mp.ImageFormat.SRGB, data=frame)
+        
+        detection_result = landmarker.detect(mp_image)
+        
+        frame_landmarks = []
+        for hand_idx in range(2):
+            if detection_result.hand_landmarks and len(detection_result.hand_landmarks) > hand_idx:
+                for res in detection_result.hand_landmarks[hand_idx]:
+                    frame_landmarks.extend([res.x, res.y, res.z])
+            else:
+                frame_landmarks.extend([0] * (21 * 3))
+        
+        sequence.append(frame_landmarks)
+        
+    cap.release()
+    return np.array(sequence)
 
-if __name__ == "__main__":
-    run_batch_processing()
+with HandLandmarker.create_from_options(options) as landmarker:
+    video_files = [f for f in os.listdir(DATA_PATH) if f.endswith('.mp4')]
+    print(f"Found {len(video_files)} videos in {DATA_PATH}")
+
+    for idx, video_name in enumerate(video_files):
+        video_input_path = os.path.join(DATA_PATH, video_name)
+        
+        landmarks = extract_landmarks(video_input_path, landmarker)
+            
+        video_name_no_ext = os.path.splitext(video_name)[0]
+            
+        save_path = os.path.join(OUTPUT_PATH, f"{video_name_no_ext}.npy")
+        np.save(save_path, landmarks)
+            
+        if idx % 10 == 0:
+            print(f"Processed {idx}/{len(video_files)} videos...")
+
+print(f"Extraction Complete")
