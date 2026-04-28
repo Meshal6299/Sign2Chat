@@ -40,11 +40,14 @@ Our system follows a **4-Layer Hybrid Pipeline**:
 
 ```text
 Sign2Chat/
-├── mobile_app/           # The Flutter Application
-│
-├── ai_lab/               # The Python Research Lab
-│
-└── README.md             # Project Documentation
+├── dataset/
+│   ├── processed/                 
+│   └── videos/           
+├── notebooks/                                      
+├── models/                                         
+├── mobile_app/            
+├── requirements.txt         
+└── README.md                
 ```
 
 ## 📊 Dataset Setup
