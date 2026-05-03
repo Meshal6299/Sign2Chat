@@ -1,3 +1,5 @@
 venv
 dataset/videos
 dataset/processed
+notebooks/tuner_results
+notebooks/baseline_results
