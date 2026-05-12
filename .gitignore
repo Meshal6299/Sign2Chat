@@ -1,5 +1,4 @@
 venv
 .venv
-WLASL/videos
-WLASL/processed
 UAE-dataset
+logs

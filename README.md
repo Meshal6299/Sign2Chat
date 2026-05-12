@@ -7,7 +7,7 @@ Sign2Chat is a mobile accessibility application designed to bridge the gap betwe
 
 ## 🚀 Key Features
 
-* **Real-Time Sign Detection:** Uses **MediaPipe & "ST_GCN MODEL"** to detect sign language gestures locally on the phone (Privacy-First).
+* **Real-Time Sign Detection:** MediaPipe extracts 75 skeletal landmarks per frame on-device (privacy-first), fed into a Two-Stream ST-GCN + BiLSTM model for recognition.
 * **Intelligent Translation:** Uses **Google Gemini / OpenAI** to convert broken sign "glosses" (e.g., *[ME]* *[WANT]* *[WATER]*) into polite, fluent English sentences.
 * **Bi-Directional Communication:**
     * **Deaf ➡ Hearing:** Translates signs into Spoken Audio (Text-to-Speech).
@@ -18,37 +18,59 @@ Sign2Chat is a mobile accessibility application designed to bridge the gap betwe
 
 Our system follows a **4-Layer Hybrid Pipeline**:
 
-1.  **Perception (Mobile):** Extracts 543 skeletal landmarks using MediaPipe (On-Device).
-2.  **Recognition (Edge):** ST GCN model
+1.  **Perception (On-Device):** MediaPipe Holistic Landmarker
+  → 75 keypoints/frame: 33 pose + 21 left hand + 21 right hand
+  → Normalized relative to shoulder width (signer-agnostic)
+2.  **Recognition (On-Device / TFLite):** Two-Stream Model: ST-GCN + BiLSTM 
 3.  **Cognition (Cloud):** An **LLM API** performs grammar smoothing and context understanding.
-4.  **Interaction (App):** Handles Text-to-Speech (TTS) and Video Retrieval logic.
+4.  **Interaction (App):** Handles Text-to-Speech (TTS) and .
 
+## 🧠 Model Architecture
+ 
+### Two-Stream Design
+ 
+| Stream | Input | Purpose |
+| :--- | :--- | :--- |
+| **ST-GCN** | Full 75-joint skeleton (60, 75, 2) | Captures *what shape* hands/body make |
+| **BiLSTM** | Hand joint velocity (60, 84) | Captures *how* the sign moves |
+| **Fusion** | Concatenated → FC(512) → FC(256) → Softmax | Final classification |
+ 
+### Input Representation
+- Fixed sequence length: **60 frames** (~2 seconds at 30fps)
+- Keypoints: **75 joints** × (x, y) = 150-dim per frame
+- Normalized to shoulder width, zero-centered
+### Training Details
+- Augmentation: scale, mirror, rotate, translate, speed perturbation, noise, frame drop
+- Label smoothing: 0.1
+- Callbacks: ModelCheckpoint (val_top5_acc), EarlyStopping, ReduceLROnPlateau
 
 ## 💻 Tech Stack
 
 | Component | Technology |
 | :--- | :--- |
 | **Mobile Framework** | Flutter (Dart) |
-| **Computer Vision** | MediaPipe Tasks (Mobile SDK) |
-| **AI Model** |  |
+| **Computer Vision** | MediaPipe Tasks (Holistic Landmarker) |
+| **AI Model** | Two-Stream ST-GCN + BiLSTM (TFLite) |
 | **Training Backend** | Python, TensorFlow, Keras, NumPy |
-| **LLM Engine** | Google Generative AI SDK (Gemini Flash) |
-| **Dataset** | WLASL (Word-Level American Sign Language) |
+| **LLM Engine** | Google Gemini Flash API |
+| **Dataset** | UAE Sign Language — Zayed Authority for People of Determination |
+| **Dataset size** | 1,245 classes (31 alphabets + numbers + common words/objects) |
 
 
 ## 📂 Project Structure
 
 ```text
-Sign2Chat/
-├── dataset/
+Sign2Chat/                                                                                    
+├── mobile_app/
+├── models/ 
+├── notebooks/  
+├── src/  
+├── UAE-dataset/
 │   ├── processed/                 
-│   └── videos/           
-├── notebooks/                                      
-├── models/                                         
-├── mobile_app/            
-├── requirements.txt         
-└── README.md                
+│   └── *glosses*/            
+├── README.md          
+└── requirements.txt               
 ```
 
-## 📊 Dataset Setup
-This project utilizes the UAE Sign lanugage (Arabic) from Zayed Authority for People of Determination. 1157 classes including 31 alphabets and some numbers
+## 📊 Dataset
+This project utilizes the UAE Sign lanugage (Arabic) from Zayed Authority for People of Determination. 1245 classes including 31 alphabets and some numbers
