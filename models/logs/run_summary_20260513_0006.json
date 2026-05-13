@@ -1,0 +1,20 @@
+{
+  "run_id": "20260513_0006",
+  "num_classes": 1245,
+  "train_samples": 28012,
+  "val_samples": 5603,
+  "test_samples": 3735,
+  "epochs_trained": 53,
+  "best_val_acc": 0.9898268580436707,
+  "test_top1_acc": 0.9820615649223328,
+  "test_top5_acc": 0.9986613392829895,
+  "checkpoint": "/home/livex/projects/Sign2Chat/models/trained/best_model_20260513_0006.keras",
+  "label_map": "/home/livex/projects/Sign2Chat/UAE-dataset/processed/splits/label_map.json",
+  "architecture": "Two-Stream ST-GCN + BiLSTM",
+  "gcn_channels": [
+    64,
+    128
+  ],
+  "lstm_units": 128,
+  "total_params": 1287901
+}
