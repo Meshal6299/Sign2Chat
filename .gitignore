@@ -1,4 +1,5 @@
 venv
 .venv
 UAE-dataset
+WLASL
 models/logs/tensorboard_*
