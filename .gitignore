@@ -2,4 +2,4 @@ venv
 .venv
 UAE-dataset
 WLASL
-models/logs/tensorboard_*
+tuner_results

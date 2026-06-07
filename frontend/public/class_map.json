@@ -1,0 +1,602 @@
+{
+  "34": {
+    "label_id": 34,
+    "word": "Animals_03_Cat",
+    "clean_name": "Cat",
+    "folder": "34_Cat"
+  },
+  "38": {
+    "label_id": 38,
+    "word": "Animals_07_Elephant",
+    "clean_name": "Elephant",
+    "folder": "38_Elephant"
+  },
+  "46": {
+    "label_id": 46,
+    "word": "Animals_14_Falcon",
+    "clean_name": "Falcon",
+    "folder": "46_Falcon"
+  },
+  "52": {
+    "label_id": 52,
+    "word": "Animals_20_Fish",
+    "clean_name": "Fish",
+    "folder": "52_Fish"
+  },
+  "56": {
+    "label_id": 56,
+    "word": "Animals_24_Camel",
+    "clean_name": "Camel",
+    "folder": "56_Camel"
+  },
+  "104": {
+    "label_id": 104,
+    "word": "Attributes_09_Slow_1",
+    "clean_name": "Slow",
+    "folder": "104_Slow"
+  },
+  "107": {
+    "label_id": 107,
+    "word": "Attributes_12_Fatigue_1",
+    "clean_name": "Fatigue",
+    "folder": "107_Fatigue"
+  },
+  "109": {
+    "label_id": 109,
+    "word": "Attributes_15_Hungry_1",
+    "clean_name": "Hungry",
+    "folder": "109_Hungry"
+  },
+  "112": {
+    "label_id": 112,
+    "word": "Attributes_18_Beautiful_1",
+    "clean_name": "Beautiful",
+    "folder": "112_Beautiful"
+  },
+  "113": {
+    "label_id": 113,
+    "word": "Attributes_19_Hot_1",
+    "clean_name": "Hot",
+    "folder": "113_Hot"
+  },
+  "115": {
+    "label_id": 115,
+    "word": "Attributes_21_Sad_1",
+    "clean_name": "Sad",
+    "folder": "115_Sad"
+  },
+  "119": {
+    "label_id": 119,
+    "word": "Attributes_25_Scared_1",
+    "clean_name": "Scared",
+    "folder": "119_Scared"
+  },
+  "125": {
+    "label_id": 125,
+    "word": "Attributes_31_Fast_1",
+    "clean_name": "Fast",
+    "folder": "125_Fast"
+  },
+  "126": {
+    "label_id": 126,
+    "word": "Attributes_32_Happly_1",
+    "clean_name": "Happly",
+    "folder": "126_Happly"
+  },
+  "129": {
+    "label_id": 129,
+    "word": "Attributes_35_Easy_1",
+    "clean_name": "Easy",
+    "folder": "129_Easy"
+  },
+  "133": {
+    "label_id": 133,
+    "word": "Attributes_39_Difficult_1",
+    "clean_name": "Difficult",
+    "folder": "133_Difficult"
+  },
+  "181": {
+    "label_id": 181,
+    "word": "Clothing_10_Hijaab",
+    "clean_name": "Hijaab",
+    "folder": "181_Hijaab"
+  },
+  "182": {
+    "label_id": 182,
+    "word": "Clothing_11_Shoes",
+    "clean_name": "Shoes",
+    "folder": "182_Shoes"
+  },
+  "186": {
+    "label_id": 186,
+    "word": "Clothing_15_Necktie",
+    "clean_name": "Necktie",
+    "folder": "186_Necktie"
+  },
+  "190": {
+    "label_id": 190,
+    "word": "Clothing_19_Uniform",
+    "clean_name": "Uniform",
+    "folder": "190_Uniform"
+  },
+  "199": {
+    "label_id": 199,
+    "word": "Clothing_29_abaya",
+    "clean_name": "abaya",
+    "folder": "199_abaya"
+  },
+  "263": {
+    "label_id": 263,
+    "word": "Colors_02_Black_01",
+    "clean_name": "Black_01",
+    "folder": "263_Black_01"
+  },
+  "266": {
+    "label_id": 266,
+    "word": "Colors_05_Pink",
+    "clean_name": "Pink",
+    "folder": "266_Pink"
+  },
+  "267": {
+    "label_id": 267,
+    "word": "Colors_06_Blue",
+    "clean_name": "Blue",
+    "folder": "267_Blue"
+  },
+  "270": {
+    "label_id": 270,
+    "word": "Colors_08_Yellow",
+    "clean_name": "Yellow",
+    "folder": "270_Yellow"
+  },
+  "271": {
+    "label_id": 271,
+    "word": "Colors_09_Red",
+    "clean_name": "Red",
+    "folder": "271_Red"
+  },
+  "272": {
+    "label_id": 272,
+    "word": "Colors_10_White",
+    "clean_name": "White",
+    "folder": "272_White"
+  },
+  "273": {
+    "label_id": 273,
+    "word": "Colors_11_Green",
+    "clean_name": "Green",
+    "folder": "273_Green"
+  },
+  "275": {
+    "label_id": 275,
+    "word": "Colors_13_Orange",
+    "clean_name": "Orange",
+    "folder": "275_Orange"
+  },
+  "294": {
+    "label_id": 294,
+    "word": "Common_Verbs_103_Work",
+    "clean_name": "Work",
+    "folder": "294_Work"
+  },
+  "297": {
+    "label_id": 297,
+    "word": "Common_Verbs_106_Angry",
+    "clean_name": "Angry",
+    "folder": "297_Angry"
+  },
+  "307": {
+    "label_id": 307,
+    "word": "Common_Verbs_115_Think",
+    "clean_name": "Think",
+    "folder": "307_Think"
+  },
+  "310": {
+    "label_id": 310,
+    "word": "Common_Verbs_118_Read",
+    "clean_name": "Read",
+    "folder": "310_Read"
+  },
+  "315": {
+    "label_id": 315,
+    "word": "Common_Verbs_122_Write",
+    "clean_name": "Write",
+    "folder": "315_Write"
+  },
+  "327": {
+    "label_id": 327,
+    "word": "Common_Verbs_133_Walk",
+    "clean_name": "Walk",
+    "folder": "327_Walk"
+  },
+  "330": {
+    "label_id": 330,
+    "word": "Common_Verbs_136_Call",
+    "clean_name": "Call",
+    "folder": "330_Call"
+  },
+  "331": {
+    "label_id": 331,
+    "word": "Common_Verbs_137_Sleep",
+    "clean_name": "Sleep",
+    "folder": "331_Sleep"
+  },
+  "350": {
+    "label_id": 350,
+    "word": "Common_Verbs_20_Love",
+    "clean_name": "Love",
+    "folder": "350_Love"
+  },
+  "392": {
+    "label_id": 392,
+    "word": "Common_Verbs_62_helps",
+    "clean_name": "helps",
+    "folder": "392_helps"
+  },
+  "393": {
+    "label_id": 393,
+    "word": "Common_Verbs_63_Travels",
+    "clean_name": "Travels",
+    "folder": "393_Travels"
+  },
+  "406": {
+    "label_id": 406,
+    "word": "Common_Verbs_77_driving",
+    "clean_name": "driving",
+    "folder": "406_driving"
+  },
+  "409": {
+    "label_id": 409,
+    "word": "Common_Verbs_81_drink",
+    "clean_name": "drink",
+    "folder": "409_drink"
+  },
+  "414": {
+    "label_id": 414,
+    "word": "Common_Verbs_86_Pray",
+    "clean_name": "Pray",
+    "folder": "414_Pray"
+  },
+  "417": {
+    "label_id": 417,
+    "word": "Common_Verbs_89_laughs",
+    "clean_name": "laughs",
+    "folder": "417_laughs"
+  },
+  "420": {
+    "label_id": 420,
+    "word": "Common_Verbs_92_Cooking",
+    "clean_name": "Cooking",
+    "folder": "420_Cooking"
+  },
+  "431": {
+    "label_id": 431,
+    "word": "Popular_Cuisines_04_Biryani",
+    "clean_name": "Biryani",
+    "folder": "431_Biryani"
+  },
+  "443": {
+    "label_id": 443,
+    "word": "Popular_Cuisines_16_Saloona",
+    "clean_name": "Saloona",
+    "folder": "443_Saloona"
+  },
+  "448": {
+    "label_id": 448,
+    "word": "Popular_Cuisines_24_Laqeemat",
+    "clean_name": "Laqeemat",
+    "folder": "448_Laqeemat"
+  },
+  "450": {
+    "label_id": 450,
+    "word": "Popular_Cuisines_26_Majboos",
+    "clean_name": "Majboos",
+    "folder": "450_Majboos"
+  },
+  "455": {
+    "label_id": 455,
+    "word": "Popular_Cuisines_32_Harees",
+    "clean_name": "Harees",
+    "folder": "455_Harees"
+  },
+  "457": {
+    "label_id": 457,
+    "word": "Directions_01_Down",
+    "clean_name": "Down",
+    "folder": "457_Down"
+  },
+  "458": {
+    "label_id": 458,
+    "word": "Directions_02_Top",
+    "clean_name": "Top",
+    "folder": "458_Top"
+  },
+  "475": {
+    "label_id": 475,
+    "word": "Directions_20_Here",
+    "clean_name": "Here",
+    "folder": "475_Here"
+  },
+  "476": {
+    "label_id": 476,
+    "word": "Directions_21_There",
+    "clean_name": "There",
+    "folder": "476_There"
+  },
+  "478": {
+    "label_id": 478,
+    "word": "Directions_23_Left",
+    "clean_name": "Left",
+    "folder": "478_Left"
+  },
+  "479": {
+    "label_id": 479,
+    "word": "Directions_24_Right",
+    "clean_name": "Right",
+    "folder": "479_Right"
+  },
+  "487": {
+    "label_id": 487,
+    "word": "Education_07_Exam",
+    "clean_name": "Exam",
+    "folder": "487_Exam"
+  },
+  "491": {
+    "label_id": 491,
+    "word": "Education_11_Education",
+    "clean_name": "Education",
+    "folder": "491_Education"
+  },
+  "493": {
+    "label_id": 493,
+    "word": "Education_13_University",
+    "clean_name": "University",
+    "folder": "493_University"
+  },
+  "499": {
+    "label_id": 499,
+    "word": "Education_19_Very_Good",
+    "clean_name": "Very_Good",
+    "folder": "499_Very_Good"
+  },
+  "500": {
+    "label_id": 500,
+    "word": "Education_20_Good",
+    "clean_name": "Good",
+    "folder": "500_Good"
+  },
+  "502": {
+    "label_id": 502,
+    "word": "Education_22_Writing",
+    "clean_name": "Writing",
+    "folder": "502_Writing"
+  },
+  "610": {
+    "label_id": 610,
+    "word": "Family_01_Family",
+    "clean_name": "Family",
+    "folder": "610_Family"
+  },
+  "611": {
+    "label_id": 611,
+    "word": "Family_02_Father",
+    "clean_name": "Father",
+    "folder": "611_Father"
+  },
+  "614": {
+    "label_id": 614,
+    "word": "Family_05_Son",
+    "clean_name": "Son",
+    "folder": "614_Son"
+  },
+  "615": {
+    "label_id": 615,
+    "word": "Family_06_Daughter",
+    "clean_name": "Daughter",
+    "folder": "615_Daughter"
+  },
+  "617": {
+    "label_id": 617,
+    "word": "Family_08_Sister",
+    "clean_name": "Sister",
+    "folder": "617_Sister"
+  },
+  "622": {
+    "label_id": 622,
+    "word": "Family_13_Mother",
+    "clean_name": "Mother",
+    "folder": "622_Mother"
+  },
+  "624": {
+    "label_id": 624,
+    "word": "Family_15_Grandfather",
+    "clean_name": "Grandfather",
+    "folder": "624_Grandfather"
+  },
+  "625": {
+    "label_id": 625,
+    "word": "Family_16_Grandmother",
+    "clean_name": "Grandmother",
+    "folder": "625_Grandmother"
+  },
+  "634": {
+    "label_id": 634,
+    "word": "Health_00_Health",
+    "clean_name": "Health",
+    "folder": "634_Health"
+  },
+  "641": {
+    "label_id": 641,
+    "word": "Health_07_Appointment_Booking",
+    "clean_name": "Appointment_Booking",
+    "folder": "641_Appointment_Booking"
+  },
+  "647": {
+    "label_id": 647,
+    "word": "Health_15_How_are_you",
+    "clean_name": "How_are_you",
+    "folder": "647_How_are_you"
+  },
+  "648": {
+    "label_id": 648,
+    "word": "Health_16_Fine",
+    "clean_name": "Fine",
+    "folder": "648_Fine"
+  },
+  "651": {
+    "label_id": 651,
+    "word": "Health_19_Headache",
+    "clean_name": "Headache",
+    "folder": "651_Headache"
+  },
+  "652": {
+    "label_id": 652,
+    "word": "Health_20_Pain",
+    "clean_name": "Pain",
+    "folder": "652_Pain"
+  },
+  "655": {
+    "label_id": 655,
+    "word": "Health_24_Fever",
+    "clean_name": "Fever",
+    "folder": "655_Fever"
+  },
+  "659": {
+    "label_id": 659,
+    "word": "Health_29_Cough",
+    "clean_name": "Cough",
+    "folder": "659_Cough"
+  },
+  "830": {
+    "label_id": 830,
+    "word": "Landmarks_09_Burj_AL_Arab",
+    "clean_name": "Burj_AL_Arab",
+    "folder": "830_Burj_AL_Arab"
+  },
+  "831": {
+    "label_id": 831,
+    "word": "Landmarks_10_Burj_Khalifa",
+    "clean_name": "Burj_Khalifa",
+    "folder": "831_Burj_Khalifa"
+  },
+  "832": {
+    "label_id": 832,
+    "word": "Landmarks_11_Jabal_Jais",
+    "clean_name": "Jabal_Jais",
+    "folder": "832_Jabal_Jais"
+  },
+  "836": {
+    "label_id": 836,
+    "word": "Landmarks_16_Jumairah",
+    "clean_name": "Jumairah",
+    "folder": "836_Jumairah"
+  },
+  "837": {
+    "label_id": 837,
+    "word": "Landmarks_17_JBR",
+    "clean_name": "JBR",
+    "folder": "837_JBR"
+  },
+  "847": {
+    "label_id": 847,
+    "word": "Landmarks_28_Masjid_Shaikh_Zayed",
+    "clean_name": "Masjid_Shaikh_Zayed",
+    "folder": "847_Masjid_Shaikh_Zayed"
+  },
+  "925": {
+    "label_id": 925,
+    "word": "Numbers_01_Zero",
+    "clean_name": "Zero",
+    "folder": "925_Zero"
+  },
+  "926": {
+    "label_id": 926,
+    "word": "Numbers_02_One",
+    "clean_name": "One",
+    "folder": "926_One"
+  },
+  "927": {
+    "label_id": 927,
+    "word": "Numbers_03_Two",
+    "clean_name": "Two",
+    "folder": "927_Two"
+  },
+  "928": {
+    "label_id": 928,
+    "word": "Numbers_04_Three",
+    "clean_name": "Three",
+    "folder": "928_Three"
+  },
+  "929": {
+    "label_id": 929,
+    "word": "Numbers_05_Four",
+    "clean_name": "Four",
+    "folder": "929_Four"
+  },
+  "930": {
+    "label_id": 930,
+    "word": "Numbers_06_Five",
+    "clean_name": "Five",
+    "folder": "930_Five"
+  },
+  "931": {
+    "label_id": 931,
+    "word": "Numbers_07_Six",
+    "clean_name": "Six",
+    "folder": "931_Six"
+  },
+  "932": {
+    "label_id": 932,
+    "word": "Numbers_08_Seven",
+    "clean_name": "Seven",
+    "folder": "932_Seven"
+  },
+  "933": {
+    "label_id": 933,
+    "word": "Numbers_09_Eight",
+    "clean_name": "Eight",
+    "folder": "933_Eight"
+  },
+  "944": {
+    "label_id": 944,
+    "word": "Numbers_10_Nine",
+    "clean_name": "Nine",
+    "folder": "944_Nine"
+  },
+  "1210": {
+    "label_id": 1210,
+    "word": "Sports_10_Swimming",
+    "clean_name": "Swimming",
+    "folder": "1210_Swimming"
+  },
+  "1212": {
+    "label_id": 1212,
+    "word": "Sports_12_Horse_Racing",
+    "clean_name": "Horse_Racing",
+    "folder": "1212_Horse_Racing"
+  },
+  "1216": {
+    "label_id": 1216,
+    "word": "Sports_16_Camel_Racing",
+    "clean_name": "Camel_Racing",
+    "folder": "1216_Camel_Racing"
+  },
+  "1222": {
+    "label_id": 1222,
+    "word": "Sports_22_Karate",
+    "clean_name": "Karate",
+    "folder": "1222_Karate"
+  },
+  "1225": {
+    "label_id": 1225,
+    "word": "Sports_25_Basketball",
+    "clean_name": "Basketball",
+    "folder": "1225_Basketball"
+  },
+  "1227": {
+    "label_id": 1227,
+    "word": "Sports_27_Football",
+    "clean_name": "Football",
+    "folder": "1227_Football"
+  }
+}
