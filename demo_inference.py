@@ -4,6 +4,7 @@ Usage:
   python demo_inference.py                      # webcam
   python demo_inference.py --video path/to.mp4  # video file
   python demo_inference.py --no-display          # print-only, no OpenCV window
+  python demo_inference.py --video path/to.mp4 --loop
 """
 import argparse, json, os, sys, time, collections
 import numpy as np
@@ -22,7 +23,6 @@ from tensorflow.keras.layers import (
 from tensorflow.keras.regularizers import l2
 
 import mediapipe as mp
-from mediapipe.tasks import python as mp_python
 from mediapipe.tasks.python.vision import (
     HolisticLandmarker, HolisticLandmarkerOptions,
 )
@@ -30,20 +30,25 @@ from mediapipe.tasks.python.core.base_options import BaseOptions
 from mediapipe.tasks.python import vision as mp_vision
 
 # ── Paths ─────────────────────────────────────────────────────────────────────
-ROOT          = os.path.dirname(os.path.abspath(__file__))
-MODEL_PATH    = os.path.join(ROOT, "models", "uaesl_best.keras")
-CLASS_IDX     = os.path.join(ROOT, "models", "uaesl_class_index.json")
-MP_MODEL      = os.path.join(ROOT, "models", "holistic_landmarker.task")
+ROOT       = os.path.dirname(os.path.abspath(__file__))
+MODEL_PATH = os.path.join(ROOT, "models", "uaesl_best.keras")
+CLASS_IDX  = os.path.join(ROOT, "models", "uaesl_class_index.json")
+MP_MODEL   = os.path.join(ROOT, "models", "holistic_landmarker.task")
 
-# ── Model constants (must match training) ────────────────────────────────────
-MAX_FRAMES   = 180
-FEATURE_DIM  = 165
-DROPOUT      = 0.4
-L2_REG       = 1e-3
-PREDICT_EVERY = 15          # run inference every N frames
-TOP_K         = 3
+# ── Model constants (must match training) ─────────────────────────────────────
+MAX_FRAMES  = 180
+FEATURE_DIM = 165
+DROPOUT     = 0.4
+L2_REG      = 1e-3
+TOP_K       = 3
 
-# ── Feature extraction (mirrors notebook 01 exactly) ─────────────────────────
+# ── Gating thresholds ─────────────────────────────────────────────────────────
+NO_HAND_RESET_FRAMES  = 30   # frames of no hands before buffer clears
+CONFIDENCE_THRESHOLD  = 0.5  # minimum top-1 confidence to display prediction
+PREDICT_EVERY         = 15   # run inference every N frames
+MIN_FRAMES_TO_PREDICT = 20   # minimum buffer size before first inference
+
+# ── Feature extraction (mirrors notebook 01 exactly) ──────────────────────────
 POSE_INDICES = [0, 11, 12, 13, 14, 15, 16, 23, 24]
 FACE_INDICES = [152, 10, 234, 454]
 
@@ -70,7 +75,15 @@ def extract_frame_features(result):
         (face - origin).flatten(),
     ]).astype(np.float32)
 
-# ── Build model (same arch as training, use_cudnn=False for left-pad masks) ──
+# ── Hand detection gate ────────────────────────────────────────────────────────
+def hands_detected(result, min_landmarks=5):
+    lh = result.left_hand_landmarks
+    rh = result.right_hand_landmarks
+    lh_present = lh is not None and len(lh) >= min_landmarks
+    rh_present = rh is not None and len(rh) >= min_landmarks
+    return lh_present or rh_present
+
+# ── Build model (same arch as training, use_cudnn=False for left-pad masks) ───
 def build_model(num_classes):
     model = Sequential([
         Masking(mask_value=0.0, input_shape=(MAX_FRAMES, FEATURE_DIM)),
@@ -88,14 +101,18 @@ def build_model(num_classes):
     model.compile(optimizer="adam", loss="categorical_crossentropy")
     return model
 
-# ── Overlay drawing ───────────────────────────────────────────────────────────
+# ── Overlay drawing ────────────────────────────────────────────────────────────
 COLORS = [(46, 204, 113), (52, 152, 219), (155, 89, 182)]  # green, blue, purple
 
-def draw_overlay(frame, predictions, frame_count, fps):
+# Display state constants
+STATE_NO_HANDS   = 0  # no hands detected → show prompt
+STATE_FILLING    = 1  # hands present, buffer < MIN_FRAMES_TO_PREDICT
+STATE_PREDICTING = 2  # confidence > threshold → show prediction
+
+def draw_overlay(frame, state, predictions, buffer_len, frame_count, fps):
     h, w = frame.shape[:2]
     panel_w = 280
 
-    # Semi-transparent side panel
     overlay = frame.copy()
     cv2.rectangle(overlay, (w - panel_w, 0), (w, h), (20, 20, 20), -1)
     cv2.addWeighted(overlay, 0.6, frame, 0.4, 0, frame)
@@ -106,28 +123,38 @@ def draw_overlay(frame, predictions, frame_count, fps):
     cv2.putText(frame, f"FPS: {fps:.0f}  Frame: {frame_count}",
                 (x, 52), cv2.FONT_HERSHEY_SIMPLEX, 0.38, (180, 180, 180), 1)
 
-    if predictions:
+    if state == STATE_NO_HANDS:
+        cv2.putText(frame, "Show your hands", (x, 95),
+                    cv2.FONT_HERSHEY_SIMPLEX, 0.48, (100, 180, 255), 1)
+        cv2.putText(frame, "to start", (x, 115),
+                    cv2.FONT_HERSHEY_SIMPLEX, 0.48, (100, 180, 255), 1)
+
+    elif state == STATE_FILLING:
+        cv2.putText(frame, "Signing...", (x, 90),
+                    cv2.FONT_HERSHEY_SIMPLEX, 0.55, (255, 200, 50), 1)
+        bar_x1, bar_y1 = x, 108
+        bar_x2, bar_y2 = x + panel_w - 24, 124
+        progress = min(buffer_len / MIN_FRAMES_TO_PREDICT, 1.0)
+        fill_x2  = bar_x1 + int((bar_x2 - bar_x1) * progress)
+        cv2.rectangle(frame, (bar_x1, bar_y1), (bar_x2, bar_y2), (50, 50, 50), -1)
+        cv2.rectangle(frame, (bar_x1, bar_y1), (fill_x2, bar_y2), (255, 200, 50), -1)
+        cv2.putText(frame, f"{buffer_len}/{MIN_FRAMES_TO_PREDICT} frames",
+                    (x, 142), cv2.FONT_HERSHEY_SIMPLEX, 0.38, (180, 180, 180), 1)
+
+    else:  # STATE_PREDICTING
         cv2.putText(frame, "Predictions:", (x, 85),
                     cv2.FONT_HERSHEY_SIMPLEX, 0.45, (200, 200, 200), 1)
         for rank, (name, prob) in enumerate(predictions):
-            y = 110 + rank * 58
+            y = 105 + rank * 58
             color = COLORS[rank]
-            # Bar background
             cv2.rectangle(frame, (x, y), (x + panel_w - 24, y + 40), (50, 50, 50), -1)
-            # Confidence bar
             bar_w = int((panel_w - 24) * prob)
             cv2.rectangle(frame, (x, y), (x + bar_w, y + 40), color, -1)
-            # Label
-            label = f"#{rank+1} {name}"
-            cv2.putText(frame, label, (x + 5, y + 16),
+            cv2.putText(frame, f"#{rank+1} {name}", (x + 5, y + 16),
                         cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1)
             cv2.putText(frame, f"{prob*100:.1f}%", (x + 5, y + 34),
                         cv2.FONT_HERSHEY_SIMPLEX, 0.42, (230, 230, 230), 1)
-    else:
-        cv2.putText(frame, "Collecting frames...", (x, 100),
-                    cv2.FONT_HERSHEY_SIMPLEX, 0.4, (150, 150, 150), 1)
 
-    # Buffer fill indicator
     return frame
 
 def draw_buffer_bar(frame, filled, total):
@@ -135,30 +162,26 @@ def draw_buffer_bar(frame, filled, total):
     bar_h = 6
     fill_w = int(w * filled / total)
     cv2.rectangle(frame, (0, h - bar_h), (w, h), (40, 40, 40), -1)
-    color = (46, 204, 113) if filled >= 30 else (52, 152, 219)
+    color = (46, 204, 113) if filled >= MIN_FRAMES_TO_PREDICT else (52, 152, 219)
     cv2.rectangle(frame, (0, h - bar_h), (fill_w, h), color, -1)
     return frame
 
-# ── Main inference loop ───────────────────────────────────────────────────────
+# ── Main inference loop ────────────────────────────────────────────────────────
 def run(source, show_display, loop_video=False):
-    # Load class index
     with open(CLASS_IDX) as f:
         class_idx = json.load(f)
-    num_classes  = len(class_idx)
-    idx_to_name  = {int(k): v["clean_name"] for k, v in class_idx.items()}
+    num_classes = len(class_idx)
+    idx_to_name = {int(k): v["clean_name"] for k, v in class_idx.items()}
 
-    # Load model
     print(f"Loading model ({num_classes} classes)...")
     model = build_model(num_classes)
     model.load_weights(MODEL_PATH)
     print("✅ Model loaded")
 
-    # Warm up (prevents first-inference latency spike)
     dummy = np.zeros((1, MAX_FRAMES, FEATURE_DIM), dtype=np.float32)
     model.predict(dummy, verbose=0)
     print("✅ Model warmed up")
 
-    # Init MediaPipe
     print("Loading MediaPipe HolisticLandmarker...")
     options = HolisticLandmarkerOptions(
         base_options=BaseOptions(model_asset_path=MP_MODEL),
@@ -172,7 +195,6 @@ def run(source, show_display, loop_video=False):
     landmarker = HolisticLandmarker.create_from_options(options)
     print("✅ MediaPipe ready\n")
 
-    # Open video source
     cap = cv2.VideoCapture(source)
     if not cap.isOpened():
         print(f"❌ Cannot open source: {source}")
@@ -182,12 +204,14 @@ def run(source, show_display, loop_video=False):
     print(f"Source : {src_label}")
     print(f"Press Q to quit\n")
 
-    frame_buffer  = collections.deque(maxlen=MAX_FRAMES)
-    frame_count   = 0
-    predictions   = None
-    ts_ms         = 0
-    fps_deque     = collections.deque(maxlen=30)
-    prev_time     = time.time()
+    frame_buffer      = collections.deque(maxlen=MAX_FRAMES)
+    frame_count       = 0
+    frames_since_hand = 0
+    predictions       = None   # set only when confidence > CONFIDENCE_THRESHOLD
+    display_state     = STATE_NO_HANDS
+    ts_ms             = 0
+    fps_deque         = collections.deque(maxlen=30)
+    prev_time         = time.time()
 
     while True:
         ret, frame = cap.read()
@@ -195,39 +219,58 @@ def run(source, show_display, loop_video=False):
             if loop_video and source != 0:
                 cap.set(cv2.CAP_PROP_POS_FRAMES, 0)
                 frame_buffer.clear()
+                frames_since_hand = 0
+                predictions   = None
+                display_state = STATE_NO_HANDS
                 ts_ms = 0
                 continue
             break
 
         frame_count += 1
-        ts_ms += 33  # ~30fps timestamps for MediaPipe VIDEO mode
+        ts_ms += 33  # ~30 fps timestamps for MediaPipe VIDEO mode
 
-        # Resize for MediaPipe (avoids resolution-mismatch crash)
         frame_resized = cv2.resize(frame, (640, 480))
-        rgb = cv2.cvtColor(frame_resized, cv2.COLOR_BGR2RGB)
+        rgb      = cv2.cvtColor(frame_resized, cv2.COLOR_BGR2RGB)
         mp_image = mp.Image(image_format=mp.ImageFormat.SRGB, data=rgb)
+        result   = landmarker.detect_for_video(mp_image, ts_ms)
 
-        result = landmarker.detect_for_video(mp_image, ts_ms)
-        vec = extract_frame_features(result)
-        frame_buffer.append(vec)
+        # ── Hand detection gate ────────────────────────────────────────────
+        if hands_detected(result):
+            frames_since_hand = 0
+            frame_buffer.append(extract_frame_features(result))
+        else:
+            frames_since_hand += 1
+            if frames_since_hand > NO_HAND_RESET_FRAMES:
+                frame_buffer.clear()
+                predictions   = None
+                display_state = STATE_NO_HANDS
 
-        # Run inference every PREDICT_EVERY frames once buffer has enough data
-        if frame_count % PREDICT_EVERY == 0 and len(frame_buffer) >= 30:
+        buf_len = len(frame_buffer)
+
+        # ── Inference gate ─────────────────────────────────────────────────
+        if buf_len >= MIN_FRAMES_TO_PREDICT and frame_count % PREDICT_EVERY == 0:
             seq = np.zeros((1, MAX_FRAMES, FEATURE_DIM), dtype=np.float32)
             frames_list = list(frame_buffer)
             n = len(frames_list)
-            # Left-pad: sign at end (matches training convention)
-            seq[0, MAX_FRAMES - n:] = np.stack(frames_list)
+            seq[0, MAX_FRAMES - n:] = np.stack(frames_list)  # left-pad
 
-            probs    = model.predict(seq, verbose=0)[0]
-            top_idx  = np.argsort(probs)[::-1][:TOP_K]
-            predictions = [(idx_to_name[i], float(probs[i])) for i in top_idx]
+            probs     = model.predict(seq, verbose=0)[0]
+            top_idx   = np.argsort(probs)[::-1][:TOP_K]
+            top1_conf = float(probs[top_idx[0]])
 
-            # Print to console always
-            names_str = "  |  ".join(f"{n} {p*100:.0f}%" for n, p in predictions)
-            print(f"[{frame_count:5d}] {names_str}")
+            if top1_conf >= CONFIDENCE_THRESHOLD:
+                predictions   = [(idx_to_name[i], float(probs[i])) for i in top_idx]
+                display_state = STATE_PREDICTING
+                names_str = "  |  ".join(f"{nm} {p*100:.0f}%" for nm, p in predictions)
+                print(f"[{frame_count:5d}] {names_str}")
+            # Below threshold: keep last valid prediction, don't flood console
 
-        # FPS
+        # ── Resolve display state for hand-present but pre-inference frames ─
+        if frames_since_hand == 0 and display_state == STATE_NO_HANDS:
+            display_state = STATE_FILLING
+        if frames_since_hand == 0 and display_state == STATE_FILLING and buf_len >= MIN_FRAMES_TO_PREDICT:
+            display_state = STATE_FILLING  # stays filling until first confident inference
+
         now = time.time()
         fps_deque.append(1.0 / max(now - prev_time, 1e-6))
         prev_time = now
@@ -235,8 +278,8 @@ def run(source, show_display, loop_video=False):
 
         if show_display:
             disp = cv2.resize(frame_resized, (760, 480))
-            disp = draw_overlay(disp, predictions, frame_count, fps)
-            disp = draw_buffer_bar(disp, len(frame_buffer), MAX_FRAMES)
+            disp = draw_overlay(disp, display_state, predictions, buf_len, frame_count, fps)
+            disp = draw_buffer_bar(disp, buf_len, MAX_FRAMES)
             cv2.imshow("Sign2Chat — Inference Demo", disp)
             key = cv2.waitKey(1) & 0xFF
             if key in (ord("q"), ord("Q"), 27):
@@ -259,10 +302,9 @@ if __name__ == "__main__":
                         help="Loop video file continuously")
     args = parser.parse_args()
 
-    source      = args.video if args.video else 0
+    source       = args.video if args.video else 0
     show_display = not args.no_display
 
-    # Auto-disable display if no DISPLAY env var (headless server)
     if show_display and not os.environ.get("DISPLAY") and source != 0:
         print("⚠  No DISPLAY found — switching to print-only mode")
         show_display = False
