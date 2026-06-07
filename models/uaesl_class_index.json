@@ -1,0 +1,172 @@
+{
+  "0": {
+    "label_id": 34,
+    "clean_name": "Cat",
+    "word": "Animals_03_Cat"
+  },
+  "1": {
+    "label_id": 38,
+    "clean_name": "Elephant",
+    "word": "Animals_07_Elephant"
+  },
+  "2": {
+    "label_id": 52,
+    "clean_name": "Fish",
+    "word": "Animals_20_Fish"
+  },
+  "3": {
+    "label_id": 56,
+    "clean_name": "Camel",
+    "word": "Animals_24_Camel"
+  },
+  "4": {
+    "label_id": 104,
+    "clean_name": "Slow",
+    "word": "Attributes_09_Slow_1"
+  },
+  "5": {
+    "label_id": 107,
+    "clean_name": "Fatigue",
+    "word": "Attributes_12_Fatigue_1"
+  },
+  "6": {
+    "label_id": 109,
+    "clean_name": "Hungry",
+    "word": "Attributes_15_Hungry_1"
+  },
+  "7": {
+    "label_id": 112,
+    "clean_name": "Beautiful",
+    "word": "Attributes_18_Beautiful_1"
+  },
+  "8": {
+    "label_id": 113,
+    "clean_name": "Hot",
+    "word": "Attributes_19_Hot_1"
+  },
+  "9": {
+    "label_id": 115,
+    "clean_name": "Sad",
+    "word": "Attributes_21_Sad_1"
+  },
+  "10": {
+    "label_id": 119,
+    "clean_name": "Scared",
+    "word": "Attributes_25_Scared_1"
+  },
+  "11": {
+    "label_id": 125,
+    "clean_name": "Fast",
+    "word": "Attributes_31_Fast_1"
+  },
+  "12": {
+    "label_id": 126,
+    "clean_name": "Happly",
+    "word": "Attributes_32_Happly_1"
+  },
+  "13": {
+    "label_id": 129,
+    "clean_name": "Easy",
+    "word": "Attributes_35_Easy_1"
+  },
+  "14": {
+    "label_id": 133,
+    "clean_name": "Difficult",
+    "word": "Attributes_39_Difficult_1"
+  },
+  "15": {
+    "label_id": 181,
+    "clean_name": "Hijaab",
+    "word": "Clothing_10_Hijaab"
+  },
+  "16": {
+    "label_id": 182,
+    "clean_name": "Shoes",
+    "word": "Clothing_11_Shoes"
+  },
+  "17": {
+    "label_id": 186,
+    "clean_name": "Necktie",
+    "word": "Clothing_15_Necktie"
+  },
+  "18": {
+    "label_id": 190,
+    "clean_name": "Uniform",
+    "word": "Clothing_19_Uniform"
+  },
+  "19": {
+    "label_id": 199,
+    "clean_name": "abaya",
+    "word": "Clothing_29_abaya"
+  },
+  "20": {
+    "label_id": 263,
+    "clean_name": "Black",
+    "word": "Colors_02_Black"
+  },
+  "21": {
+    "label_id": 266,
+    "clean_name": "Pink",
+    "word": "Colors_05_Pink"
+  },
+  "22": {
+    "label_id": 267,
+    "clean_name": "Blue",
+    "word": "Colors_06_Blue"
+  },
+  "23": {
+    "label_id": 270,
+    "clean_name": "Yellow",
+    "word": "Colors_08_Yellow"
+  },
+  "24": {
+    "label_id": 271,
+    "clean_name": "Red",
+    "word": "Colors_09_Red"
+  },
+  "25": {
+    "label_id": 272,
+    "clean_name": "White",
+    "word": "Colors_10_White"
+  },
+  "26": {
+    "label_id": 273,
+    "clean_name": "Green",
+    "word": "Colors_11_Green"
+  },
+  "27": {
+    "label_id": 275,
+    "clean_name": "Orange",
+    "word": "Colors_13_Orange"
+  },
+  "28": {
+    "label_id": 294,
+    "clean_name": "Work",
+    "word": "Common_Verbs_103_Work"
+  },
+  "29": {
+    "label_id": 297,
+    "clean_name": "Angry",
+    "word": "Common_Verbs_106_Angry"
+  },
+  "30": {
+    "label_id": 307,
+    "clean_name": "Think",
+    "word": "Common_Verbs_115_Think"
+  },
+  "31": {
+    "label_id": 310,
+    "clean_name": "Read",
+    "word": "Common_Verbs_118_Read"
+  },
+  "32": {
+    "label_id": 315,
+    "clean_name": "Write",
+    "word": "Common_Verbs_122_Write"
+  },
+  "33": {
+    "label_id": 327,
+    "clean_name": "Walk",
+    "word": "Common_Verbs_133_Walk"
+  }
+}
