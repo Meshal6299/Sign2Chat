@@ -6,13 +6,38 @@ Usage:
   python demo_inference.py --no-display          # print-only, no OpenCV window
   python demo_inference.py --video path/to.mp4 --loop
 """
-import argparse, json, os, sys, time, collections
+import os
+import sys
+
+# 1. Suppress TensorFlow and oneDNN logs
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
+os.environ['TF_ENABLE_ONEDNN_OPTS'] = '0'
+
+# 2. Suppress MediaPipe / absl C++ logging noise
+os.environ['GLOG_minloglevel'] = '3'
+
+# 3. Suppress OpenCV / Qt font warnings
+os.environ['QT_LOGGING_RULES'] = '*.debug=false;*.info=false;*.warning=false'
+
+# (Optional) Redirect stderr completely during noisy imports if needed
+
+import os
+
+# Set absl logging to only show Errors (3), silencing Warnings (1 & 2) and Info (0)
+os.environ['GLOG_minloglevel'] = '3'
+os.environ['ABSL_MIN_LOG_LEVEL'] = '3'
+
+import warnings
+warnings.filterwarnings("ignore", category=UserWarning, module="keras")
+
+import argparse, json, time, collections
 import numpy as np
 import cv2
 
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
 os.environ["XLA_FLAGS"]            = "--xla_gpu_autotune_level=0"
 os.environ["TF_XLA_FLAGS"]         = "--tf_xla_auto_jit=0"
+
 
 import tensorflow as tf
 from tensorflow.keras import Sequential
@@ -42,10 +67,7 @@ DROPOUT     = 0.4
 L2_REG      = 1e-3
 TOP_K       = 3
 
-# ── Gating thresholds ─────────────────────────────────────────────────────────
-NO_HAND_RESET_FRAMES  = 30   # frames of no hands before buffer clears
-CONFIDENCE_THRESHOLD  = 0.5  # minimum top-1 confidence to display prediction
-PREDICT_EVERY         = 15   # run inference every N frames
+PREDICT_EVERY         = 5   # run inference every N frames
 MIN_FRAMES_TO_PREDICT = 20   # minimum buffer size before first inference
 
 # ── Feature extraction (mirrors notebook 01 exactly) ──────────────────────────
@@ -75,14 +97,6 @@ def extract_frame_features(result):
         (face - origin).flatten(),
     ]).astype(np.float32)
 
-# ── Hand detection gate ────────────────────────────────────────────────────────
-def hands_detected(result, min_landmarks=5):
-    lh = result.left_hand_landmarks
-    rh = result.right_hand_landmarks
-    lh_present = lh is not None and len(lh) >= min_landmarks
-    rh_present = rh is not None and len(rh) >= min_landmarks
-    return lh_present or rh_present
-
 # ── Build model (same arch as training, use_cudnn=False for left-pad masks) ───
 def build_model(num_classes):
     model = Sequential([
@@ -105,9 +119,8 @@ def build_model(num_classes):
 COLORS = [(46, 204, 113), (52, 152, 219), (155, 89, 182)]  # green, blue, purple
 
 # Display state constants
-STATE_NO_HANDS   = 0  # no hands detected → show prompt
-STATE_FILLING    = 1  # hands present, buffer < MIN_FRAMES_TO_PREDICT
-STATE_PREDICTING = 2  # confidence > threshold → show prediction
+STATE_FILLING    = 0  # buffer < MIN_FRAMES_TO_PREDICT
+STATE_PREDICTING = 1  # buffer ready, showing predictions
 
 def draw_overlay(frame, state, predictions, buffer_len, frame_count, fps):
     h, w = frame.shape[:2]
@@ -123,13 +136,7 @@ def draw_overlay(frame, state, predictions, buffer_len, frame_count, fps):
     cv2.putText(frame, f"FPS: {fps:.0f}  Frame: {frame_count}",
                 (x, 52), cv2.FONT_HERSHEY_SIMPLEX, 0.38, (180, 180, 180), 1)
 
-    if state == STATE_NO_HANDS:
-        cv2.putText(frame, "Show your hands", (x, 95),
-                    cv2.FONT_HERSHEY_SIMPLEX, 0.48, (100, 180, 255), 1)
-        cv2.putText(frame, "to start", (x, 115),
-                    cv2.FONT_HERSHEY_SIMPLEX, 0.48, (100, 180, 255), 1)
-
-    elif state == STATE_FILLING:
+    if state == STATE_FILLING:
         cv2.putText(frame, "Signing...", (x, 90),
                     cv2.FONT_HERSHEY_SIMPLEX, 0.55, (255, 200, 50), 1)
         bar_x1, bar_y1 = x, 108
@@ -204,14 +211,13 @@ def run(source, show_display, loop_video=False):
     print(f"Source : {src_label}")
     print(f"Press Q to quit\n")
 
-    frame_buffer      = collections.deque(maxlen=MAX_FRAMES)
-    frame_count       = 0
-    frames_since_hand = 0
-    predictions       = None   # set only when confidence > CONFIDENCE_THRESHOLD
-    display_state     = STATE_NO_HANDS
-    ts_ms             = 0
-    fps_deque         = collections.deque(maxlen=30)
-    prev_time         = time.time()
+    frame_buffer  = collections.deque(maxlen=MAX_FRAMES)
+    frame_count   = 0
+    predictions   = None
+    display_state = STATE_FILLING
+    ts_ms         = 0
+    fps_deque     = collections.deque(maxlen=30)
+    prev_time     = time.time()
 
     while True:
         ret, frame = cap.read()
@@ -219,9 +225,8 @@ def run(source, show_display, loop_video=False):
             if loop_video and source != 0:
                 cap.set(cv2.CAP_PROP_POS_FRAMES, 0)
                 frame_buffer.clear()
-                frames_since_hand = 0
                 predictions   = None
-                display_state = STATE_NO_HANDS
+                display_state = STATE_FILLING
                 ts_ms = 0
                 continue
             break
@@ -234,42 +239,24 @@ def run(source, show_display, loop_video=False):
         mp_image = mp.Image(image_format=mp.ImageFormat.SRGB, data=rgb)
         result   = landmarker.detect_for_video(mp_image, ts_ms)
 
-        # ── Hand detection gate ────────────────────────────────────────────
-        if hands_detected(result):
-            frames_since_hand = 0
-            frame_buffer.append(extract_frame_features(result))
-        else:
-            frames_since_hand += 1
-            if frames_since_hand > NO_HAND_RESET_FRAMES:
-                frame_buffer.clear()
-                predictions   = None
-                display_state = STATE_NO_HANDS
-
+        # Always buffer every frame regardless of hand visibility
+        frame_buffer.append(extract_frame_features(result))
         buf_len = len(frame_buffer)
 
-        # ── Inference gate ─────────────────────────────────────────────────
+        # ── Inference (no confidence gate) ────────────────────────────────
         if buf_len >= MIN_FRAMES_TO_PREDICT and frame_count % PREDICT_EVERY == 0:
             seq = np.zeros((1, MAX_FRAMES, FEATURE_DIM), dtype=np.float32)
             frames_list = list(frame_buffer)
             n = len(frames_list)
             seq[0, MAX_FRAMES - n:] = np.stack(frames_list)  # left-pad
 
-            probs     = model.predict(seq, verbose=0)[0]
-            top_idx   = np.argsort(probs)[::-1][:TOP_K]
-            top1_conf = float(probs[top_idx[0]])
+            probs   = model.predict(seq, verbose=0)[0]
+            top_idx = np.argsort(probs)[::-1][:TOP_K]
 
-            if top1_conf >= CONFIDENCE_THRESHOLD:
-                predictions   = [(idx_to_name[i], float(probs[i])) for i in top_idx]
-                display_state = STATE_PREDICTING
-                names_str = "  |  ".join(f"{nm} {p*100:.0f}%" for nm, p in predictions)
-                print(f"[{frame_count:5d}] {names_str}")
-            # Below threshold: keep last valid prediction, don't flood console
-
-        # ── Resolve display state for hand-present but pre-inference frames ─
-        if frames_since_hand == 0 and display_state == STATE_NO_HANDS:
-            display_state = STATE_FILLING
-        if frames_since_hand == 0 and display_state == STATE_FILLING and buf_len >= MIN_FRAMES_TO_PREDICT:
-            display_state = STATE_FILLING  # stays filling until first confident inference
+            predictions   = [(idx_to_name[i], float(probs[i])) for i in top_idx]
+            display_state = STATE_PREDICTING
+            names_str = "  |  ".join(f"{nm} {p*100:.0f}%" for nm, p in predictions)
+            print(f"[{frame_count:5d}] {names_str}")
 
         now = time.time()
         fps_deque.append(1.0 / max(now - prev_time, 1e-6))
@@ -290,6 +277,7 @@ def run(source, show_display, loop_video=False):
     if show_display:
         cv2.destroyAllWindows()
     print("\nDone.")
+    os._exit(0)
 
 
 if __name__ == "__main__":
