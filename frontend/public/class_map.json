@@ -11,12 +11,6 @@
     "clean_name": "Elephant",
     "folder": "38_Elephant"
   },
-  "46": {
-    "label_id": 46,
-    "word": "Animals_14_Falcon",
-    "clean_name": "Falcon",
-    "folder": "46_Falcon"
-  },
   "52": {
     "label_id": 52,
     "word": "Animals_20_Fish",
@@ -127,9 +121,9 @@
   },
   "263": {
     "label_id": 263,
-    "word": "Colors_02_Black_01",
-    "clean_name": "Black_01",
-    "folder": "263_Black_01"
+    "word": "Colors_02_Black",
+    "clean_name": "Black",
+    "folder": "263_Black"
   },
   "266": {
     "label_id": 266,
@@ -562,6 +556,12 @@
     "word": "Numbers_10_Nine",
     "clean_name": "Nine",
     "folder": "944_Nine"
+  },
+  "955": {
+    "label_id": 955,
+    "word": "Numbers_11_Ten",
+    "clean_name": "Ten",
+    "folder": "955_Ten"
   },
   "1210": {
     "label_id": 1210,

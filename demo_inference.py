@@ -19,11 +19,7 @@ os.environ['GLOG_minloglevel'] = '3'
 # 3. Suppress OpenCV / Qt font warnings
 os.environ['QT_LOGGING_RULES'] = '*.debug=false;*.info=false;*.warning=false'
 
-# (Optional) Redirect stderr completely during noisy imports if needed
-
 import os
-
-# Set absl logging to only show Errors (3), silencing Warnings (1 & 2) and Info (0)
 os.environ['GLOG_minloglevel'] = '3'
 os.environ['ABSL_MIN_LOG_LEVEL'] = '3'
 
@@ -68,7 +64,7 @@ L2_REG      = 1e-3
 TOP_K       = 3
 
 PREDICT_EVERY         = 5   # run inference every N frames
-MIN_FRAMES_TO_PREDICT = 20   # minimum buffer size before first inference
+MIN_FRAMES_TO_PREDICT = 30   # minimum buffer size before first inference
 
 # ── Feature extraction (mirrors notebook 01 exactly) ──────────────────────────
 POSE_INDICES = [0, 11, 12, 13, 14, 15, 16, 23, 24]

@@ -1,16 +1,33 @@
-import { useEffect, useRef, useCallback } from 'react'
+import { useEffect, useRef, useCallback, useState } from 'react'
 import { useCamera } from '../hooks/useCamera'
 import { useMediaPipe } from '../hooks/useMediaPipe'
 import { useModel } from '../hooks/useModel'
-import { extractFrameFeatures } from '../utils/landmarks'
-import { PREDICT_EVERY } from '../utils/constants'
+import { extractFrameFeatures, hasBothHands, hasAnyHand } from '../utils/landmarks'
+import { drawLandmarks } from '../utils/drawLandmarks'
+import { PREDICT_EVERY, CONFIDENCE_CONFIRMED, HAND_HOLD_MS, HANDS_AWAY_MS } from '../utils/constants'
 import PredictionOverlay from './PredictionOverlay'
 
-export default function CameraPanel({ onSignSent, overridePredictions, onSendToChat, canSendOverride }) {
+export default function CameraPanel({ onSendToChat, onSigningChange }) {
   const { videoRef, isActive, error, startCamera } = useCamera()
   const { init: initMediaPipe, detect, ready: mpReady } = useMediaPipe()
-  const { load, loaded, pushFrame, runInference, clearBuffer, topPredictions, bufferLength } = useModel()
+  const { load, loaded, pushFrame, runInference, clearBuffer, topPredictions } = useModel()
 
+  const [showLandmarks, setShowLandmarks] = useState(false)
+  const showLandmarksRef = useRef(false)
+  useEffect(() => { showLandmarksRef.current = showLandmarks }, [showLandmarks])
+
+  // Gating state machine: 'idle' (no hands / not held long enough) -> 'active' (signing & predicting)
+  const [phase, setPhase]         = useState('idle')
+  const [countdown, setCountdown] = useState(null) // seconds remaining while both hands are held
+  const [sentenceWords, setSentenceWords] = useState([])
+
+  const phaseRef          = useRef('idle')
+  const handsSinceRef     = useRef(null)
+  const handsAwaySinceRef = useRef(null)
+  const sentenceWordsRef  = useRef([])
+  const lastWordRef       = useRef(null)
+
+  const canvasRef     = useRef(null)
   const frameCountRef = useRef(0)
   const rafRef        = useRef(null)
 
@@ -21,6 +38,26 @@ export default function CameraPanel({ onSignSent, overridePredictions, onSendToC
     return () => cancelAnimationFrame(rafRef.current)
   }, [])
 
+  useEffect(() => { onSigningChange?.(phase === 'active') }, [phase, onSigningChange])
+
+  // Ends the current signing session, optionally flushing the accumulated
+  // sentence to chat, and resets the gate back to idle.
+  const finalizeSession = useCallback((send) => {
+    phaseRef.current = 'idle'
+    setPhase('idle')
+    handsSinceRef.current = null
+    handsAwaySinceRef.current = null
+    setCountdown(null)
+    lastWordRef.current = null
+    clearBuffer()
+    frameCountRef.current = 0
+
+    const words = sentenceWordsRef.current
+    sentenceWordsRef.current = []
+    setSentenceWords([])
+    if (send && words.length > 0) onSendToChat?.(words)
+  }, [clearBuffer, onSendToChat])
+
   useEffect(() => {
     if (!isActive || !mpReady || !loaded) return
 
@@ -29,10 +66,62 @@ export default function CameraPanel({ onSignSent, overridePredictions, onSendToC
       if (video && video.readyState >= 2) {
         const result = detect(video)
         if (result) {
-          const vec = extractFrameFeatures(result)
-          pushFrame(vec)
-          frameCountRef.current++
-          if (frameCountRef.current % PREDICT_EVERY === 0) runInference()
+          const now  = performance.now()
+          const both = hasBothHands(result)
+
+          if (phaseRef.current === 'idle') {
+            if (both) {
+              if (handsSinceRef.current === null) handsSinceRef.current = now
+              const elapsed = now - handsSinceRef.current
+              if (elapsed >= HAND_HOLD_MS) {
+                phaseRef.current = 'active'
+                setPhase('active')
+                handsAwaySinceRef.current = null
+                setCountdown(null)
+              } else {
+                setCountdown(Math.ceil((HAND_HOLD_MS - elapsed) / 1000))
+              }
+            } else {
+              if (handsSinceRef.current !== null) setCountdown(null)
+              handsSinceRef.current = null
+            }
+          } else {
+            // Active: track how long NO hand has been visible so the
+            // session can auto-end and flush the sentence to chat.
+            // (One-handed signs are common, so only "no hands at all"
+            // counts as the signer stepping away.)
+            if (hasAnyHand(result)) {
+              handsAwaySinceRef.current = null
+            } else {
+              if (handsAwaySinceRef.current === null) handsAwaySinceRef.current = now
+              if (now - handsAwaySinceRef.current >= HANDS_AWAY_MS) {
+                finalizeSession(true)
+              }
+            }
+
+            if (phaseRef.current === 'active') {
+              const vec = extractFrameFeatures(result)
+              pushFrame(vec)
+              frameCountRef.current++
+              if (frameCountRef.current % PREDICT_EVERY === 0) {
+                const top3 = runInference()
+                const best = top3?.[0]
+                if (best && best.prob >= CONFIDENCE_CONFIRMED && best.name !== lastWordRef.current) {
+                  lastWordRef.current = best.name
+                  sentenceWordsRef.current = [...sentenceWordsRef.current, best.name]
+                  setSentenceWords(sentenceWordsRef.current)
+                }
+              }
+            }
+          }
+
+          const canvas = canvasRef.current
+          if (canvas && video.videoWidth) {
+            if (canvas.width !== video.videoWidth)   canvas.width  = video.videoWidth
+            if (canvas.height !== video.videoHeight) canvas.height = video.videoHeight
+            const ctx = canvas.getContext('2d')
+            drawLandmarks(ctx, showLandmarksRef.current ? result : null, canvas.width, canvas.height)
+          }
         }
       }
       rafRef.current = requestAnimationFrame(loop)
@@ -40,22 +129,8 @@ export default function CameraPanel({ onSignSent, overridePredictions, onSendToC
 
     rafRef.current = requestAnimationFrame(loop)
     return () => cancelAnimationFrame(rafRef.current)
-  }, [isActive, mpReady, loaded])
+  }, [isActive, mpReady, loaded, detect, pushFrame, runInference, finalizeSession])
 
-  const handleSend = useCallback(() => {
-    if (onSendToChat) { onSendToChat(); return }
-    if (!topPredictions?.length) return
-    onSignSent(topPredictions[0].name)
-  }, [topPredictions, onSignSent, onSendToChat])
-
-  const handleClear = useCallback(() => {
-    clearBuffer()
-    frameCountRef.current = 0
-  }, [clearBuffer])
-
-  const isSigning    = bufferLength() > 5
-  const canSend      = canSendOverride ?? (topPredictions?.[0]?.prob >= 0.5)
-  const activePredictions = overridePredictions ?? topPredictions
   const isLoading    = !mpReady || !loaded
   const loadingLabel = !mpReady ? 'Initializing MediaPipe…' : 'Loading sign model…'
 
@@ -63,13 +138,36 @@ export default function CameraPanel({ onSignSent, overridePredictions, onSendToC
     <div className="panel camera-panel">
       <div className="panel-header">
         <span className="panel-label">Camera</span>
-        {isActive && <span className="panel-status">● Webcam active</span>}
+        <div className="panel-header-right">
+          {isActive && <span className="panel-status">● Webcam active</span>}
+        </div>
       </div>
 
-      <div className={`video-wrapper${isSigning ? ' signing-active' : ''}`}>
+      <div className={`video-wrapper${phase === 'active' ? ' signing-active' : ''}`}>
         <video ref={videoRef} autoPlay playsInline muted className="camera-video" />
-        <PredictionOverlay predictions={activePredictions} />
-        {isSigning && <div className="signing-badge">✋ Signing</div>}
+        <canvas ref={canvasRef} className="landmark-canvas" />
+        <PredictionOverlay predictions={topPredictions} />
+
+        {phase === 'active' && <div className="signing-badge">✋ Signing</div>}
+
+        {phase === 'idle' && countdown === null && (
+          <div className="gate-hint">Show both hands to start signing</div>
+        )}
+
+        {phase === 'idle' && countdown !== null && (
+          <div className="gate-countdown">
+            <span className="gate-countdown-ring">{countdown}</span>
+            Hold steady…
+          </div>
+        )}
+
+        {phase === 'active' && sentenceWords.length > 0 && (
+          <div className="sentence-strip">
+            {sentenceWords.map((w, i) => (
+              <span className="sentence-chip" key={i}>{w}</span>
+            ))}
+          </div>
+        )}
       </div>
 
       {error && <div className="error-msg">{error}</div>}
@@ -82,11 +180,12 @@ export default function CameraPanel({ onSignSent, overridePredictions, onSendToC
       )}
 
       <div className="panel-actions">
-        <button className="btn btn-primary" onClick={handleSend} disabled={!canSend}>
-          Send to chat
-        </button>
-        <button className="btn btn-secondary" onClick={handleClear}>
-          Clear
+        <button
+          className={`landmark-toggle${showLandmarks ? ' active' : ''}`}
+          onClick={() => setShowLandmarks(v => !v)}
+          aria-pressed={showLandmarks}
+        >
+          Landmarks: {showLandmarks ? 'On' : 'Off'}
         </button>
       </div>
     </div>

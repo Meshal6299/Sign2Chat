@@ -1,6 +1,14 @@
 const POSE_INDICES = [0, 11, 12, 13, 14, 15, 16, 23, 24]
 const FACE_INDICES = [152, 10, 234, 454]
 
+export function hasBothHands(result) {
+  return !!(result?.leftHandLandmarks?.length && result?.rightHandLandmarks?.length)
+}
+
+export function hasAnyHand(result) {
+  return !!(result?.leftHandLandmarks?.length || result?.rightHandLandmarks?.length)
+}
+
 export function extractFrameFeatures(result) {
   const toArr = (lmList, indices = null, n = 21) => {
     if (!lmList || lmList.length === 0) {

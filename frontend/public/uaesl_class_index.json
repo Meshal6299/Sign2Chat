@@ -1,0 +1,502 @@
+{
+  "0": {
+    "label_id": 34,
+    "clean_name": "Cat",
+    "word": "Animals_03_Cat"
+  },
+  "1": {
+    "label_id": 38,
+    "clean_name": "Elephant",
+    "word": "Animals_07_Elephant"
+  },
+  "2": {
+    "label_id": 52,
+    "clean_name": "Fish",
+    "word": "Animals_20_Fish"
+  },
+  "3": {
+    "label_id": 56,
+    "clean_name": "Camel",
+    "word": "Animals_24_Camel"
+  },
+  "4": {
+    "label_id": 104,
+    "clean_name": "Slow",
+    "word": "Attributes_09_Slow_1"
+  },
+  "5": {
+    "label_id": 107,
+    "clean_name": "Fatigue",
+    "word": "Attributes_12_Fatigue_1"
+  },
+  "6": {
+    "label_id": 109,
+    "clean_name": "Hungry",
+    "word": "Attributes_15_Hungry_1"
+  },
+  "7": {
+    "label_id": 112,
+    "clean_name": "Beautiful",
+    "word": "Attributes_18_Beautiful_1"
+  },
+  "8": {
+    "label_id": 113,
+    "clean_name": "Hot",
+    "word": "Attributes_19_Hot_1"
+  },
+  "9": {
+    "label_id": 115,
+    "clean_name": "Sad",
+    "word": "Attributes_21_Sad_1"
+  },
+  "10": {
+    "label_id": 119,
+    "clean_name": "Scared",
+    "word": "Attributes_25_Scared_1"
+  },
+  "11": {
+    "label_id": 125,
+    "clean_name": "Fast",
+    "word": "Attributes_31_Fast_1"
+  },
+  "12": {
+    "label_id": 126,
+    "clean_name": "Happly",
+    "word": "Attributes_32_Happly_1"
+  },
+  "13": {
+    "label_id": 129,
+    "clean_name": "Easy",
+    "word": "Attributes_35_Easy_1"
+  },
+  "14": {
+    "label_id": 133,
+    "clean_name": "Difficult",
+    "word": "Attributes_39_Difficult_1"
+  },
+  "15": {
+    "label_id": 181,
+    "clean_name": "Hijaab",
+    "word": "Clothing_10_Hijaab"
+  },
+  "16": {
+    "label_id": 182,
+    "clean_name": "Shoes",
+    "word": "Clothing_11_Shoes"
+  },
+  "17": {
+    "label_id": 186,
+    "clean_name": "Necktie",
+    "word": "Clothing_15_Necktie"
+  },
+  "18": {
+    "label_id": 190,
+    "clean_name": "Uniform",
+    "word": "Clothing_19_Uniform"
+  },
+  "19": {
+    "label_id": 199,
+    "clean_name": "abaya",
+    "word": "Clothing_29_abaya"
+  },
+  "20": {
+    "label_id": 263,
+    "clean_name": "Black",
+    "word": "Colors_02_Black"
+  },
+  "21": {
+    "label_id": 266,
+    "clean_name": "Pink",
+    "word": "Colors_05_Pink"
+  },
+  "22": {
+    "label_id": 267,
+    "clean_name": "Blue",
+    "word": "Colors_06_Blue"
+  },
+  "23": {
+    "label_id": 270,
+    "clean_name": "Yellow",
+    "word": "Colors_08_Yellow"
+  },
+  "24": {
+    "label_id": 271,
+    "clean_name": "Red",
+    "word": "Colors_09_Red"
+  },
+  "25": {
+    "label_id": 272,
+    "clean_name": "White",
+    "word": "Colors_10_White"
+  },
+  "26": {
+    "label_id": 273,
+    "clean_name": "Green",
+    "word": "Colors_11_Green"
+  },
+  "27": {
+    "label_id": 275,
+    "clean_name": "Orange",
+    "word": "Colors_13_Orange"
+  },
+  "28": {
+    "label_id": 294,
+    "clean_name": "Work",
+    "word": "Common_Verbs_103_Work"
+  },
+  "29": {
+    "label_id": 297,
+    "clean_name": "Angry",
+    "word": "Common_Verbs_106_Angry"
+  },
+  "30": {
+    "label_id": 307,
+    "clean_name": "Think",
+    "word": "Common_Verbs_115_Think"
+  },
+  "31": {
+    "label_id": 310,
+    "clean_name": "Read",
+    "word": "Common_Verbs_118_Read"
+  },
+  "32": {
+    "label_id": 315,
+    "clean_name": "Write",
+    "word": "Common_Verbs_122_Write"
+  },
+  "33": {
+    "label_id": 327,
+    "clean_name": "Walk",
+    "word": "Common_Verbs_133_Walk"
+  },
+  "34": {
+    "label_id": 330,
+    "clean_name": "Call",
+    "word": "Common_Verbs_136_Call"
+  },
+  "35": {
+    "label_id": 331,
+    "clean_name": "Sleep",
+    "word": "Common_Verbs_137_Sleep"
+  },
+  "36": {
+    "label_id": 350,
+    "clean_name": "Love",
+    "word": "Common_Verbs_20_Love"
+  },
+  "37": {
+    "label_id": 392,
+    "clean_name": "helps",
+    "word": "Common_Verbs_62_helps"
+  },
+  "38": {
+    "label_id": 393,
+    "clean_name": "Travels",
+    "word": "Common_Verbs_63_Travels"
+  },
+  "39": {
+    "label_id": 406,
+    "clean_name": "driving",
+    "word": "Common_Verbs_77_driving"
+  },
+  "40": {
+    "label_id": 409,
+    "clean_name": "drink",
+    "word": "Common_Verbs_81_drink"
+  },
+  "41": {
+    "label_id": 414,
+    "clean_name": "Pray",
+    "word": "Common_Verbs_86_Pray"
+  },
+  "42": {
+    "label_id": 417,
+    "clean_name": "laughs",
+    "word": "Common_Verbs_89_laughs"
+  },
+  "43": {
+    "label_id": 420,
+    "clean_name": "Cooking",
+    "word": "Common_Verbs_92_Cooking"
+  },
+  "44": {
+    "label_id": 431,
+    "clean_name": "Biryani",
+    "word": "Popular_Cuisines_04_Biryani"
+  },
+  "45": {
+    "label_id": 443,
+    "clean_name": "Saloona",
+    "word": "Popular_Cuisines_16_Saloona"
+  },
+  "46": {
+    "label_id": 448,
+    "clean_name": "Laqeemat",
+    "word": "Popular_Cuisines_24_Laqeemat"
+  },
+  "47": {
+    "label_id": 450,
+    "clean_name": "Majboos",
+    "word": "Popular_Cuisines_26_Majboos"
+  },
+  "48": {
+    "label_id": 455,
+    "clean_name": "Harees",
+    "word": "Popular_Cuisines_32_Harees"
+  },
+  "49": {
+    "label_id": 457,
+    "clean_name": "Down",
+    "word": "Directions_01_Down"
+  },
+  "50": {
+    "label_id": 458,
+    "clean_name": "Top",
+    "word": "Directions_02_Top"
+  },
+  "51": {
+    "label_id": 475,
+    "clean_name": "Here",
+    "word": "Directions_20_Here"
+  },
+  "52": {
+    "label_id": 476,
+    "clean_name": "There",
+    "word": "Directions_21_There"
+  },
+  "53": {
+    "label_id": 478,
+    "clean_name": "Left",
+    "word": "Directions_23_Left"
+  },
+  "54": {
+    "label_id": 479,
+    "clean_name": "Right",
+    "word": "Directions_24_Right"
+  },
+  "55": {
+    "label_id": 487,
+    "clean_name": "Exam",
+    "word": "Education_07_Exam"
+  },
+  "56": {
+    "label_id": 491,
+    "clean_name": "Education",
+    "word": "Education_11_Education"
+  },
+  "57": {
+    "label_id": 493,
+    "clean_name": "University",
+    "word": "Education_13_University"
+  },
+  "58": {
+    "label_id": 499,
+    "clean_name": "Very_Good",
+    "word": "Education_19_Very_Good"
+  },
+  "59": {
+    "label_id": 500,
+    "clean_name": "Good",
+    "word": "Education_20_Good"
+  },
+  "60": {
+    "label_id": 502,
+    "clean_name": "Writing",
+    "word": "Education_22_Writing"
+  },
+  "61": {
+    "label_id": 610,
+    "clean_name": "Family",
+    "word": "Family_01_Family"
+  },
+  "62": {
+    "label_id": 611,
+    "clean_name": "Father",
+    "word": "Family_02_Father"
+  },
+  "63": {
+    "label_id": 614,
+    "clean_name": "Son",
+    "word": "Family_05_Son"
+  },
+  "64": {
+    "label_id": 615,
+    "clean_name": "Daughter",
+    "word": "Family_06_Daughter"
+  },
+  "65": {
+    "label_id": 617,
+    "clean_name": "Sister",
+    "word": "Family_08_Sister"
+  },
+  "66": {
+    "label_id": 622,
+    "clean_name": "Mother",
+    "word": "Family_13_Mother"
+  },
+  "67": {
+    "label_id": 624,
+    "clean_name": "Grandfather",
+    "word": "Family_15_Grandfather"
+  },
+  "68": {
+    "label_id": 625,
+    "clean_name": "Grandmother",
+    "word": "Family_16_Grandmother"
+  },
+  "69": {
+    "label_id": 634,
+    "clean_name": "Health",
+    "word": "Health_00_Health"
+  },
+  "70": {
+    "label_id": 641,
+    "clean_name": "Appointment_Booking",
+    "word": "Health_07_Appointment_Booking"
+  },
+  "71": {
+    "label_id": 647,
+    "clean_name": "How_are_you",
+    "word": "Health_15_How_are_you"
+  },
+  "72": {
+    "label_id": 648,
+    "clean_name": "Fine",
+    "word": "Health_16_Fine"
+  },
+  "73": {
+    "label_id": 651,
+    "clean_name": "Headache",
+    "word": "Health_19_Headache"
+  },
+  "74": {
+    "label_id": 652,
+    "clean_name": "Pain",
+    "word": "Health_20_Pain"
+  },
+  "75": {
+    "label_id": 655,
+    "clean_name": "Fever",
+    "word": "Health_24_Fever"
+  },
+  "76": {
+    "label_id": 659,
+    "clean_name": "Cough",
+    "word": "Health_29_Cough"
+  },
+  "77": {
+    "label_id": 830,
+    "clean_name": "Burj_AL_Arab",
+    "word": "Landmarks_09_Burj_AL_Arab"
+  },
+  "78": {
+    "label_id": 831,
+    "clean_name": "Burj_Khalifa",
+    "word": "Landmarks_10_Burj_Khalifa"
+  },
+  "79": {
+    "label_id": 832,
+    "clean_name": "Jabal_Jais",
+    "word": "Landmarks_11_Jabal_Jais"
+  },
+  "80": {
+    "label_id": 836,
+    "clean_name": "Jumairah",
+    "word": "Landmarks_16_Jumairah"
+  },
+  "81": {
+    "label_id": 837,
+    "clean_name": "JBR",
+    "word": "Landmarks_17_JBR"
+  },
+  "82": {
+    "label_id": 847,
+    "clean_name": "Masjid_Shaikh_Zayed",
+    "word": "Landmarks_28_Masjid_Shaikh_Zayed"
+  },
+  "83": {
+    "label_id": 925,
+    "clean_name": "Zero",
+    "word": "Numbers_01_Zero"
+  },
+  "84": {
+    "label_id": 926,
+    "clean_name": "One",
+    "word": "Numbers_02_One"
+  },
+  "85": {
+    "label_id": 927,
+    "clean_name": "Two",
+    "word": "Numbers_03_Two"
+  },
+  "86": {
+    "label_id": 928,
+    "clean_name": "Three",
+    "word": "Numbers_04_Three"
+  },
+  "87": {
+    "label_id": 929,
+    "clean_name": "Four",
+    "word": "Numbers_05_Four"
+  },
+  "88": {
+    "label_id": 930,
+    "clean_name": "Five",
+    "word": "Numbers_06_Five"
+  },
+  "89": {
+    "label_id": 931,
+    "clean_name": "Six",
+    "word": "Numbers_07_Six"
+  },
+  "90": {
+    "label_id": 932,
+    "clean_name": "Seven",
+    "word": "Numbers_08_Seven"
+  },
+  "91": {
+    "label_id": 933,
+    "clean_name": "Eight",
+    "word": "Numbers_09_Eight"
+  },
+  "92": {
+    "label_id": 944,
+    "clean_name": "Nine",
+    "word": "Numbers_10_Nine"
+  },
+  "93": {
+    "label_id": 955,
+    "clean_name": "Ten",
+    "word": "Numbers_11_Ten"
+  },
+  "94": {
+    "label_id": 1210,
+    "clean_name": "Swimming",
+    "word": "Sports_10_Swimming"
+  },
+  "95": {
+    "label_id": 1212,
+    "clean_name": "Horse_Racing",
+    "word": "Sports_12_Horse_Racing"
+  },
+  "96": {
+    "label_id": 1216,
+    "clean_name": "Camel_Racing",
+    "word": "Sports_16_Camel_Racing"
+  },
+  "97": {
+    "label_id": 1222,
+    "clean_name": "Karate",
+    "word": "Sports_22_Karate"
+  },
+  "98": {
+    "label_id": 1225,
+    "clean_name": "Basketball",
+    "word": "Sports_25_Basketball"
+  },
+  "99": {
+    "label_id": 1227,
+    "clean_name": "Football",
+    "word": "Sports_27_Football"
+  }
+}

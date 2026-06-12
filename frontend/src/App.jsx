@@ -1,29 +1,23 @@
-import { useState, useCallback, useEffect, useRef } from 'react'
+import { useState, useCallback } from 'react'
 import CameraPanel from './components/CameraPanel'
 import ChatPanel from './components/ChatPanel'
-import { DummyControls } from './components/DummyControls'
 import { useChat } from './hooks/useChat'
-import { useDummyModel } from './hooks/useDummyModel'
 import { useLLMSmoothing } from './hooks/useLLMSmoothing'
+import { useTTS } from './hooks/useTTS'
 import './App.css'
 
 export default function App() {
   const { messages, addTypedMessage, addMessage } = useChat()
-  const [signedWords, setSignedWords] = useState([])
-  const [lang, setLang]               = useState('en')
+  const [lang, setLang]         = useState('en')
+  const [isSigning, setIsSigning] = useState(false)
 
-  const { smooth, isLoading: isSmoothing, error: llmError, reset: resetSmoothing } = useLLMSmoothing()
+  const { smooth, error: llmError, reset: resetSmoothing } = useLLMSmoothing()
+  const { speak } = useTTS()
 
-  const handleWordDetected = useCallback((sign) => {
-    setSignedWords(prev => [...prev, sign.word])
-  }, [])
+  const handleSendToChat = useCallback(async (words) => {
+    if (!words?.length) return
 
-  const dummyModel = useDummyModel(handleWordDetected)
-
-  const handleSendToChat = useCallback(async () => {
-    if (signedWords.length === 0) return
-
-    const { arabic, english, raw } = await smooth(signedWords, lang)
+    const { arabic, english, raw } = await smooth(words, lang)
 
     addMessage({
       id:         Date.now(),
@@ -31,34 +25,15 @@ export default function App() {
       text:       raw,
       arabic,
       english,
-      rawWords:   signedWords,
+      rawWords:   words,
       viaSigning: true,
       timestamp:  new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
     })
 
-    setSignedWords([])
+    speak(lang === 'ar' ? (arabic || raw) : (english || raw), lang)
+
     resetSmoothing()
-  }, [signedWords, lang, smooth, addMessage, resetSmoothing])
-
-  // Use a ref so the effect below always calls the latest version (avoids stale closure)
-  const sendRef = useRef(handleSendToChat)
-  useEffect(() => { sendRef.current = handleSendToChat }, [handleSendToChat])
-
-  // Auto-send to chat when the dummy session finishes playing
-  const wasPlayingRef = useRef(false)
-  useEffect(() => {
-    if (wasPlayingRef.current && !dummyModel.isPlaying) {
-      sendRef.current()
-    }
-    wasPlayingRef.current = dummyModel.isPlaying
-  }, [dummyModel.isPlaying])
-
-  const handleStopSession = useCallback(() => {
-    dummyModel.stop()
-    setSignedWords([])
-  }, [dummyModel])
-
-  const dummyPredictions = dummyModel.top3.length > 0 ? dummyModel.top3 : null
+  }, [lang, smooth, addMessage, resetSmoothing, speak])
 
   return (
     <div className="app">
@@ -105,18 +80,8 @@ export default function App() {
       <main className="app-body">
         <div className="camera-col">
           <CameraPanel
-            onSignSent={addMessage}
-            overridePredictions={dummyPredictions}
             onSendToChat={handleSendToChat}
-            canSendOverride={signedWords.length > 0 || undefined}
-          />
-          <DummyControls
-            onSessionPlay={dummyModel.play}
-            onStop={handleStopSession}
-            isPlaying={dummyModel.isPlaying}
-            isSmoothing={isSmoothing}
-            signedWords={signedWords}
-            lang={lang}
+            onSigningChange={setIsSigning}
           />
         </div>
 
@@ -125,7 +90,7 @@ export default function App() {
         <ChatPanel
           messages={messages}
           onTypedMessage={addTypedMessage}
-          isSigning={dummyModel.isPlaying}
+          isSigning={isSigning}
           lang={lang}
         />
       </main>
