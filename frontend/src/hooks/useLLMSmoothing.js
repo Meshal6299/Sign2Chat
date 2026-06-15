@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react'
 
 const GEMINI_ENDPOINT =
-  'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent'
+  'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent'
 
 const FORMAT_INSTRUCTION = `\n\nUse exactly this format:\n**الترجمة باللهجة الإماراتية (Emarati Dialect):**\n* [sentence in Emirati Arabic]\n\n**English Translation:**\n* [sentence in English]`
 
@@ -59,7 +59,13 @@ export function useLLMSmoothing() {
             role: 'user',
             parts: [{ text: `Signed words: ${rawInput}` }],
           }],
-          generationConfig: { maxOutputTokens: 350, temperature: 0.3 },
+          // thinkingBudget: 0 disables 2.5-flash's default reasoning so the whole
+          // token budget goes to the answer (and lowers latency for real-time use).
+          generationConfig: {
+            maxOutputTokens: 512,
+            temperature: 0.3,
+            thinkingConfig: { thinkingBudget: 0 },
+          },
         }),
       })
 
