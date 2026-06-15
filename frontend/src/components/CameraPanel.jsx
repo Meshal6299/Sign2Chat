@@ -100,17 +100,22 @@ export default function CameraPanel({ onSendToChat, onSigningChange }) {
             }
 
             if (phaseRef.current === 'active') {
-              const vec = extractFrameFeatures(result)
-              pushFrame(vec)
-              frameCountRef.current++
-              if (frameCountRef.current % PREDICT_EVERY === 0) {
-                const top3 = runInference()
-                const best = top3?.[0]
-                if (best && best.prob >= CONFIDENCE_CONFIRMED && best.name !== lastWordRef.current) {
-                  lastWordRef.current = best.name
-                  sentenceWordsRef.current = [...sentenceWordsRef.current, best.name]
-                  setSentenceWords(sentenceWordsRef.current)
+              try {
+                const vec = extractFrameFeatures(result)
+                pushFrame(vec)
+                frameCountRef.current++
+                if (frameCountRef.current % PREDICT_EVERY === 0) {
+                  const top3 = runInference()
+                  console.log('[Sign2Chat] inference top3:', top3)
+                  const best = top3?.[0]
+                  if (best && best.prob >= CONFIDENCE_CONFIRMED && best.name !== lastWordRef.current) {
+                    lastWordRef.current = best.name
+                    sentenceWordsRef.current = [...sentenceWordsRef.current, best.name]
+                    setSentenceWords(sentenceWordsRef.current)
+                  }
                 }
+              } catch (e) {
+                console.error('[Sign2Chat] inference error:', e)
               }
             }
           }

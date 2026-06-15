@@ -1,10 +1,9 @@
-import { CONFIDENCE_CONFIRMED, CONFIDENCE_UNCERTAIN } from '../utils/constants'
+import { CONFIDENCE_CONFIRMED } from '../utils/constants'
 
 export default function PredictionOverlay({ predictions }) {
   if (!predictions?.length) return null
 
   const top = predictions[0]
-  if (top.prob < CONFIDENCE_UNCERTAIN) return null
 
   const badge = top.prob >= CONFIDENCE_CONFIRMED
     ? <span className="badge confirmed">✓ Confirmed</span>

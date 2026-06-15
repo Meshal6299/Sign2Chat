@@ -23,10 +23,10 @@ export function extractFrameFeatures(result) {
     ]))
   }
 
-  const lh   = toArr(result.leftHandLandmarks,  null,         21)
-  const rh   = toArr(result.rightHandLandmarks, null,         21)
-  const pose = toArr(result.poseLandmarks,       POSE_INDICES, 33)
-  const face = toArr(result.faceLandmarks,       FACE_INDICES, 468)
+  const lh   = toArr(result.leftHandLandmarks?.[0],  null,         21)
+  const rh   = toArr(result.rightHandLandmarks?.[0], null,         21)
+  const pose = toArr(result.poseLandmarks?.[0],       POSE_INDICES, 33)
+  const face = toArr(result.faceLandmarks?.[0],       FACE_INDICES, 468)
 
   // Normalize relative to shoulder midpoint (pose indices 1=L_shoulder, 2=R_shoulder)
   const ox = (pose[3]  + pose[6])  / 2

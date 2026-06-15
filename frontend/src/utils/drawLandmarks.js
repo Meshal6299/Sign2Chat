@@ -18,20 +18,24 @@ export function drawLandmarks(ctx, result, width, height) {
   if (!result) return
 
   if (result.poseLandmarks?.length) {
-    drawConnections(ctx, result.poseLandmarks, POSE_CONNECTIONS, width, height, 'rgba(100,200,255,0.6)', 2)
-    drawPoints(ctx, result.poseLandmarks, width, height, 'rgba(100,200,255,0.9)', 3)
+    const pose = result.poseLandmarks[0]
+    drawConnections(ctx, pose, POSE_CONNECTIONS, width, height, 'rgba(100,200,255,0.6)', 2)
+    drawPoints(ctx, pose, width, height, 'rgba(100,200,255,0.9)', 3)
   }
   if (result.leftHandLandmarks?.length) {
-    drawConnections(ctx, result.leftHandLandmarks, HAND_CONNECTIONS, width, height, 'rgba(80,220,130,0.8)', 2)
-    drawPoints(ctx, result.leftHandLandmarks, width, height, 'rgba(80,220,130,1)', 3)
+    const lh = result.leftHandLandmarks[0]
+    drawConnections(ctx, lh, HAND_CONNECTIONS, width, height, 'rgba(80,220,130,0.8)', 2)
+    drawPoints(ctx, lh, width, height, 'rgba(80,220,130,1)', 3)
   }
   if (result.rightHandLandmarks?.length) {
-    drawConnections(ctx, result.rightHandLandmarks, HAND_CONNECTIONS, width, height, 'rgba(180,130,255,0.8)', 2)
-    drawPoints(ctx, result.rightHandLandmarks, width, height, 'rgba(180,130,255,1)', 3)
+    const rh = result.rightHandLandmarks[0]
+    drawConnections(ctx, rh, HAND_CONNECTIONS, width, height, 'rgba(180,130,255,0.8)', 2)
+    drawPoints(ctx, rh, width, height, 'rgba(180,130,255,1)', 3)
   }
   if (result.faceLandmarks?.length) {
+    const face = result.faceLandmarks[0]
     FACE_REF_INDICES.forEach(i => {
-      const lm = result.faceLandmarks[i]
+      const lm = face[i]
       if (!lm) return
       ctx.beginPath()
       ctx.arc(lm.x * width, lm.y * height, 2, 0, 2 * Math.PI)
