@@ -18,7 +18,7 @@ export function useMediaPipe() {
       runningMode: 'VIDEO',
       minFaceDetectionConfidence: 0.5,
       minPoseDetectionConfidence: 0.5,
-      minHandLandmarksConfidence: 0.5,
+      minHandLandmarksConfidence: 0.3,
       outputFaceBlendshapes: false,
       outputSegmentationMasks: false,
     })

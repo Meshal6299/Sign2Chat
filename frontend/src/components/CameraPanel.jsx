@@ -2,9 +2,9 @@ import { useEffect, useRef, useCallback, useState } from 'react'
 import { useCamera } from '../hooks/useCamera'
 import { useMediaPipe } from '../hooks/useMediaPipe'
 import { useModel } from '../hooks/useModel'
-import { extractFrameFeatures, hasBothHands, hasAnyHand } from '../utils/landmarks'
+import { useSignSession, SESSION_STATE } from '../hooks/useSignSession'
 import { drawLandmarks } from '../utils/drawLandmarks'
-import { PREDICT_EVERY, CONFIDENCE_CONFIRMED, HAND_HOLD_MS, HANDS_AWAY_MS } from '../utils/constants'
+import { FRAME_INTERVAL_MS } from '../utils/constants'
 import PredictionOverlay from './PredictionOverlay'
 
 export default function CameraPanel({ onSendToChat, onSigningChange }) {
@@ -16,20 +16,30 @@ export default function CameraPanel({ onSendToChat, onSigningChange }) {
   const showLandmarksRef = useRef(false)
   useEffect(() => { showLandmarksRef.current = showLandmarks }, [showLandmarks])
 
-  // Gating state machine: 'idle' (no hands / not held long enough) -> 'active' (signing & predicting)
-  const [phase, setPhase]         = useState('idle')
-  const [countdown, setCountdown] = useState(null) // seconds remaining while both hands are held
-  const [sentenceWords, setSentenceWords] = useState([])
+  const canvasRef       = useRef(null)
+  const rafRef          = useRef(null)
+  const lastProcessRef  = useRef(0)   // timestamp of last processed frame (30fps throttle)
 
-  const phaseRef          = useRef('idle')
-  const handsSinceRef     = useRef(null)
-  const handsAwaySinceRef = useRef(null)
-  const sentenceWordsRef  = useRef([])
-  const lastWordRef       = useRef(null)
+  // Adapter: run model inference on one explicit single-sign buffer of frames.
+  // useModel owns its own internal frame buffer (it also drives the prediction
+  // overlay), so we load the collected sign's frames into it, infer, then map
+  // the result to the { clean_name, confidence } shape useSignSession expects.
+  const runInferenceOnBuffer = useCallback((frames) => {
+    clearBuffer()
+    frames.forEach(f => pushFrame(f))
+    const top3 = runInference() || []
+    return top3.map(t => ({ ...t, clean_name: t.name, confidence: t.prob }))
+  }, [clearBuffer, pushFrame, runInference])
 
-  const canvasRef     = useRef(null)
-  const frameCountRef = useRef(0)
-  const rafRef        = useRef(null)
+  const { state, sentence, bufferLen, onFrame } = useSignSession({
+    runInference: runInferenceOnBuffer,
+    onFinalize:   onSendToChat,
+  })
+
+  // Keep onFrame in a ref so the rAF loop never restarts on its identity change
+  // and never reads a stale closure (all its real state lives in refs anyway).
+  const onFrameRef = useRef(onFrame)
+  useEffect(() => { onFrameRef.current = onFrame }, [onFrame])
 
   useEffect(() => {
     initMediaPipe()
@@ -38,82 +48,26 @@ export default function CameraPanel({ onSendToChat, onSigningChange }) {
     return () => cancelAnimationFrame(rafRef.current)
   }, [])
 
-  useEffect(() => { onSigningChange?.(phase === 'active') }, [phase, onSigningChange])
-
-  // Ends the current signing session, optionally flushing the accumulated
-  // sentence to chat, and resets the gate back to idle.
-  const finalizeSession = useCallback((send) => {
-    phaseRef.current = 'idle'
-    setPhase('idle')
-    handsSinceRef.current = null
-    handsAwaySinceRef.current = null
-    setCountdown(null)
-    lastWordRef.current = null
-    clearBuffer()
-    frameCountRef.current = 0
-
-    const words = sentenceWordsRef.current
-    sentenceWordsRef.current = []
-    setSentenceWords([])
-    if (send && words.length > 0) onSendToChat?.(words)
-  }, [clearBuffer, onSendToChat])
+  useEffect(() => { onSigningChange?.(state !== SESSION_STATE.IDLE) }, [state, onSigningChange])
 
   useEffect(() => {
     if (!isActive || !mpReady || !loaded) return
 
     const loop = () => {
+      rafRef.current = requestAnimationFrame(loop)
+
+      // Throttle to ~30fps so the per-frame motion cadence the model sees matches
+      // the fixed 30fps it was trained on (browser rAF runs at 60fps+, which would
+      // feed a slowed-down sign). Also makes the frame-count gates map to real time.
+      const now = performance.now()
+      if (now - lastProcessRef.current < FRAME_INTERVAL_MS) return
+      lastProcessRef.current = now
+
       const video = videoRef.current
       if (video && video.readyState >= 2) {
         const result = detect(video)
         if (result) {
-          const now  = performance.now()
-          const both = hasBothHands(result)
-
-          if (phaseRef.current === 'idle') {
-            if (both) {
-              if (handsSinceRef.current === null) handsSinceRef.current = now
-              const elapsed = now - handsSinceRef.current
-              if (elapsed >= HAND_HOLD_MS) {
-                phaseRef.current = 'active'
-                setPhase('active')
-                handsAwaySinceRef.current = null
-                setCountdown(null)
-              } else {
-                setCountdown(Math.ceil((HAND_HOLD_MS - elapsed) / 1000))
-              }
-            } else {
-              if (handsSinceRef.current !== null) setCountdown(null)
-              handsSinceRef.current = null
-            }
-          } else {
-            // Active: track how long NO hand has been visible so the
-            // session can auto-end and flush the sentence to chat.
-            // (One-handed signs are common, so only "no hands at all"
-            // counts as the signer stepping away.)
-            if (hasAnyHand(result)) {
-              handsAwaySinceRef.current = null
-            } else {
-              if (handsAwaySinceRef.current === null) handsAwaySinceRef.current = now
-              if (now - handsAwaySinceRef.current >= HANDS_AWAY_MS) {
-                finalizeSession(true)
-              }
-            }
-
-            if (phaseRef.current === 'active') {
-              const vec = extractFrameFeatures(result)
-              pushFrame(vec)
-              frameCountRef.current++
-              if (frameCountRef.current % PREDICT_EVERY === 0) {
-                const top3 = runInference()
-                const best = top3?.[0]
-                if (best && best.prob >= CONFIDENCE_CONFIRMED && best.name !== lastWordRef.current) {
-                  lastWordRef.current = best.name
-                  sentenceWordsRef.current = [...sentenceWordsRef.current, best.name]
-                  setSentenceWords(sentenceWordsRef.current)
-                }
-              }
-            }
-          }
+          onFrameRef.current(result)
 
           const canvas = canvasRef.current
           if (canvas && video.videoWidth) {
@@ -124,12 +78,11 @@ export default function CameraPanel({ onSendToChat, onSigningChange }) {
           }
         }
       }
-      rafRef.current = requestAnimationFrame(loop)
     }
 
     rafRef.current = requestAnimationFrame(loop)
     return () => cancelAnimationFrame(rafRef.current)
-  }, [isActive, mpReady, loaded, detect, pushFrame, runInference, finalizeSession])
+  }, [isActive, mpReady, loaded, detect])
 
   const isLoading    = !mpReady || !loaded
   const loadingLabel = !mpReady ? 'Initializing MediaPipe…' : 'Loading sign model…'
@@ -143,27 +96,28 @@ export default function CameraPanel({ onSendToChat, onSigningChange }) {
         </div>
       </div>
 
-      <div className={`video-wrapper${phase === 'active' ? ' signing-active' : ''}`}>
+      <div className={`video-wrapper${state !== SESSION_STATE.IDLE ? ' signing-active' : ''}`}>
         <video ref={videoRef} autoPlay playsInline muted className="camera-video" />
         <canvas ref={canvasRef} className="landmark-canvas" />
         <PredictionOverlay predictions={topPredictions} />
 
-        {phase === 'active' && <div className="signing-badge">✋ Signing</div>}
+        {state === SESSION_STATE.COLLECTING && <div className="signing-badge">✋ Signing</div>}
 
-        {phase === 'idle' && countdown === null && (
-          <div className="gate-hint">Show both hands to start signing</div>
+        {state === SESSION_STATE.IDLE && (
+          <div className="gate-hint">Show your hands and start signing</div>
         )}
 
-        {phase === 'idle' && countdown !== null && (
-          <div className="gate-countdown">
-            <span className="gate-countdown-ring">{countdown}</span>
-            Hold steady…
-          </div>
+        {state === SESSION_STATE.COLLECTING && (
+          <div className="gate-hint">Signing… ({bufferLen})</div>
         )}
 
-        {phase === 'active' && sentenceWords.length > 0 && (
+        {state === SESSION_STATE.WAITING && (
+          <div className="gate-hint">Sign next word, or lower hands to send</div>
+        )}
+
+        {sentence.length > 0 && (
           <div className="sentence-strip">
-            {sentenceWords.map((w, i) => (
+            {sentence.map((w, i) => (
               <span className="sentence-chip" key={i}>{w}</span>
             ))}
           </div>
