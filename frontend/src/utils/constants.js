@@ -1,15 +1,20 @@
 export const MAX_FRAMES = 180
 export const FEATURE_DIM = 165
 export const NUM_CLASSES = 100
-export const PREDICT_EVERY = 30
-export const MIN_FRAMES_FOR_INFERENCE = 20
+export const PREDICT_EVERY = 60
+export const MIN_FRAMES_FOR_INFERENCE = 60
 export const CONFIDENCE_CONFIRMED = 0.8
 export const CONFIDENCE_UNCERTAIN = 0.5
 // Minimum confidence for a motion-gated sign's top prediction to enter the sentence
 export const CONFIDENCE_LOW = 0.7
 
 // Capture cadence: throttle live frames to the 30fps the model was trained on.
-// Browser rAF runs at 60fps+, which would feed the BiLSTM a slowed-down sign.
+// Browser rAF runs at 60fps+, which would waste MediaPipe compute on frames the
+// model doesn't need. (Was 500/TARGET_FPS = 16.7ms = 60fps — a bug.)
+// NOTE: this is only an UPPER bound. The real processed rate is set by how fast
+// MediaPipe Holistic runs on this machine — on a laptop that's often < 30fps,
+// which is why a captured sign is resampled to TARGET_FPS before inference
+// (see resampleToFps / useSignSession) so signing speed no longer matters.
 export const TARGET_FPS        = 30
 export const FRAME_INTERVAL_MS = 1000 / TARGET_FPS   // ~33.3ms between processed frames
 

@@ -48,26 +48,36 @@ export function useLLMSmoothing() {
       const apiKey = import.meta.env.VITE_GEMINI_API_KEY
       if (!apiKey) throw new Error('VITE_GEMINI_API_KEY is not set')
 
-      const response = await fetch(`${GEMINI_ENDPOINT}?key=${apiKey}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          systemInstruction: {
-            parts: [{ text: SYSTEM_PROMPTS[lang] ?? SYSTEM_PROMPTS.en }],
-          },
-          contents: [{
-            role: 'user',
-            parts: [{ text: `Signed words: ${rawInput}` }],
-          }],
-          // thinkingBudget: 0 disables 2.5-flash's default reasoning so the whole
-          // token budget goes to the answer (and lowers latency for real-time use).
-          generationConfig: {
-            maxOutputTokens: 512,
-            temperature: 0.3,
-            thinkingConfig: { thinkingBudget: 0 },
-          },
-        }),
+      const body = JSON.stringify({
+        systemInstruction: {
+          parts: [{ text: SYSTEM_PROMPTS[lang] ?? SYSTEM_PROMPTS.en }],
+        },
+        contents: [{
+          role: 'user',
+          parts: [{ text: `Signed words: ${rawInput}` }],
+        }],
+        // thinkingBudget: 0 disables 2.5-flash's default reasoning so the whole
+        // token budget goes to the answer (and lowers latency for real-time use).
+        generationConfig: {
+          maxOutputTokens: 512,
+          temperature: 0.3,
+          thinkingConfig: { thinkingBudget: 0 },
+        },
       })
+
+      // gemini-2.5-flash intermittently returns 503 (overloaded) / 429 (rate) under
+      // load. Retry transient failures with backoff before falling back to raw words.
+      const TRANSIENT = new Set([429, 500, 502, 503])
+      let response
+      for (let attempt = 0; attempt < 3; attempt++) {
+        response = await fetch(`${GEMINI_ENDPOINT}?key=${apiKey}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body,
+        })
+        if (response.ok || !TRANSIENT.has(response.status)) break
+        await new Promise(r => setTimeout(r, 500 * (attempt + 1)))   // 500ms, 1s
+      }
 
       if (!response.ok) throw new Error(`Gemini API error ${response.status}`)
 

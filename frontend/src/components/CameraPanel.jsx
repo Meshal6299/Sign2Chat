@@ -20,6 +20,12 @@ export default function CameraPanel({ onSendToChat, onSigningChange }) {
   const rafRef          = useRef(null)
   const lastProcessRef  = useRef(0)   // timestamp of last processed frame (30fps throttle)
 
+  // Live processed-FPS meter — the real rate MediaPipe achieves on this machine.
+  // If this sits well below 30, capture (not the model) is the bottleneck.
+  const [fps, setFps]   = useState(0)
+  const fpsTimesRef     = useRef([])
+  const lastFpsPushRef  = useRef(0)
+
   // Adapter: run model inference on one explicit single-sign buffer of frames.
   // useModel owns its own internal frame buffer (it also drives the prediction
   // overlay), so we load the collected sign's frames into it, infer, then map
@@ -67,6 +73,15 @@ export default function CameraPanel({ onSendToChat, onSigningChange }) {
       if (video && video.readyState >= 2) {
         const result = detect(video)
         if (result) {
+          // Measure the actual processed rate: count frames in a 1s sliding window.
+          const ts = fpsTimesRef.current
+          ts.push(now)
+          while (ts.length && ts[0] < now - 1000) ts.shift()
+          if (now - lastFpsPushRef.current > 250) {
+            lastFpsPushRef.current = now
+            setFps(ts.length)
+          }
+
           onFrameRef.current(result)
 
           const canvas = canvasRef.current
@@ -92,6 +107,11 @@ export default function CameraPanel({ onSendToChat, onSigningChange }) {
       <div className="panel-header">
         <span className="panel-label">Camera</span>
         <div className="panel-header-right">
+          {isActive && fps > 0 && (
+            <span className="panel-status" style={{ color: fps < 24 ? '#d9822b' : undefined }}>
+              {fps} fps
+            </span>
+          )}
           {isActive && <span className="panel-status">● Webcam active</span>}
         </div>
       </div>

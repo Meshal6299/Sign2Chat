@@ -1,8 +1,9 @@
 import { useRef, useState, useCallback } from 'react'
-import { extractFrameFeatures, hasAnyHand as hasHands } from '../utils/landmarks'
+import { extractFrameFeatures, hasAnyHand as hasHands, resampleToFps } from '../utils/landmarks'
 import {
   MOTION_START_THRESHOLD, MOTION_STOP_THRESHOLD, PAUSE_FRAMES,
-  MIN_SIGN_FRAMES, MAX_SIGN_FRAMES, FINALIZE_FRAMES, TRACKING_GRACE_FRAMES, CONFIDENCE_LOW
+  MIN_SIGN_FRAMES, MAX_SIGN_FRAMES, FINALIZE_FRAMES, TRACKING_GRACE_FRAMES, CONFIDENCE_LOW,
+  TARGET_FPS, MAX_FRAMES
 } from '../utils/constants'
 
 export const SESSION_STATE = {
@@ -19,6 +20,7 @@ export function useSignSession({ runInference, onFinalize }) {
 
   // Refs — mutable state safe inside the rAF loop (no stale closures)
   const buffer        = useRef([])      // Float32Array(165)[]
+  const bufferTimes   = useRef([])      // wall-clock ms per buffered frame (for resampling)
   const prevVec       = useRef(null)
   const isCollecting  = useRef(false)
   const pauseCounter  = useRef(0)
@@ -40,7 +42,11 @@ export function useSignSession({ runInference, onFinalize }) {
   // Run inference on the collected single-sign buffer, add word to sentence
   const finishSign = () => {
     if (buffer.current.length >= MIN_SIGN_FRAMES) {
-      const top3 = runInference(buffer.current)
+      // Resample the captured sign to the 30fps cadence the model trained on,
+      // using real timestamps. This makes prediction independent of the laptop's
+      // (often sub-30fps) MediaPipe throughput, so users can sign at normal speed.
+      const frames = resampleToFps(buffer.current, bufferTimes.current, TARGET_FPS, MAX_FRAMES)
+      const top3 = runInference(frames)
       setPredictions(top3)
       if (top3.length > 0 && top3[0].confidence >= CONFIDENCE_LOW) {
         sentenceRef.current = [...sentenceRef.current, top3[0].clean_name]
@@ -48,6 +54,7 @@ export function useSignSession({ runInference, onFinalize }) {
       }
     }
     buffer.current = []
+    bufferTimes.current = []
     setBufferLen(0)
     isCollecting.current = false
     pauseCounter.current = 0
@@ -90,6 +97,7 @@ export function useSignSession({ runInference, onFinalize }) {
 
     // ── Hands present ──────────────────────────────────────────────────────────
     noHandsCount.current = 0
+    const now    = performance.now()
     const vec    = extractFrameFeatures(result)
     const motion = computeMotion(vec)
     prevVec.current = vec
@@ -105,6 +113,7 @@ export function useSignSession({ runInference, onFinalize }) {
       if (motion > MOTION_START_THRESHOLD) {
         isCollecting.current = true
         buffer.current       = [vec]
+        bufferTimes.current  = [now]
         pauseCounter.current = 0
         setBufferLen(1)
         setStateSynced(SESSION_STATE.COLLECTING)
@@ -112,6 +121,7 @@ export function useSignSession({ runInference, onFinalize }) {
     } else {
       // Collecting one sign
       buffer.current.push(vec)
+      bufferTimes.current.push(now)
       setBufferLen(buffer.current.length)
 
       // Hard cap — sign running too long, force inference
@@ -136,6 +146,7 @@ export function useSignSession({ runInference, onFinalize }) {
 
   const reset = useCallback(() => {
     buffer.current = []
+    bufferTimes.current = []
     prevVec.current = null
     isCollecting.current = false
     pauseCounter.current = 0

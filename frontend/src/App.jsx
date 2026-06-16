@@ -11,7 +11,7 @@ export default function App() {
   const [lang, setLang]         = useState('en')
   const [isSigning, setIsSigning] = useState(false)
 
-  const { smooth, error: llmError, reset: resetSmoothing } = useLLMSmoothing()
+  const { smooth, error: llmError } = useLLMSmoothing()
   const { speak } = useTTS()
 
   const handleSendToChat = useCallback(async (words) => {
@@ -31,9 +31,9 @@ export default function App() {
     })
 
     speak(lang === 'ar' ? (arabic || raw) : (english || raw), lang)
-
-    resetSmoothing()
-  }, [lang, smooth, addMessage, resetSmoothing, speak])
+    // Note: don't clear llmError here — it self-clears on the next smooth() call.
+    // Clearing it immediately hid transient API failures (banner flashed away).
+  }, [lang, smooth, addMessage, speak])
 
   return (
     <div className="app">
