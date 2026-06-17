@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import ChatMessage from './ChatMessage'
 
-export default function ChatPanel({ messages, onTypedMessage, isSigning, lang }) {
+export default function ChatPanel({ messages, onTypedMessage, isSigning, lang, onRequestSign, loadingSignId }) {
   const [draft, setDraft] = useState('')
   const bottomRef         = useRef(null)
 
@@ -39,7 +39,13 @@ export default function ChatPanel({ messages, onTypedMessage, isSigning, lang })
         )}
 
         {messages.map(msg => (
-          <ChatMessage key={msg.id} {...msg} lang={lang} />
+          <ChatMessage
+            key={msg.id}
+            {...msg}
+            lang={lang}
+            onRequestSign={onRequestSign}
+            isLoadingSign={loadingSignId === msg.id}
+          />
         ))}
 
         {isSigning && (

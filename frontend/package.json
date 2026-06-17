@@ -4,6 +4,9 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
+    "reference-videos": "node scripts/copy-reference-videos.mjs",
+    "predev": "node scripts/copy-reference-videos.mjs",
+    "prebuild": "node scripts/copy-reference-videos.mjs",
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint .",

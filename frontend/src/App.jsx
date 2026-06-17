@@ -1,18 +1,52 @@
 import { useState, useCallback } from 'react'
 import CameraPanel from './components/CameraPanel'
 import ChatPanel from './components/ChatPanel'
+import SignReference from './components/SignReference'
+import SignSequencePlayer from './components/SignSequencePlayer'
 import { useChat } from './hooks/useChat'
 import { useLLMSmoothing } from './hooks/useLLMSmoothing'
+import { useTextToSign } from './hooks/useTextToSign'
 import { useTTS } from './hooks/useTTS'
 import './App.css'
 
 export default function App() {
-  const { messages, addTypedMessage, addMessage } = useChat()
-  const [lang, setLang]         = useState('en')
+  const { messages, addMessage } = useChat()
+  const [lang]                  = useState('en')
   const [isSigning, setIsSigning] = useState(false)
+  const [showReference, setShowReference] = useState(false)
+  const [signCache, setSignCache] = useState({})   // hearing msg id → translated sign clips
+  const [loadingSignId, setLoadingSignId] = useState(null)
+  const [signSeq, setSignSeq] = useState(null)     // { items, text } being played
 
   const { smooth, error: llmError } = useLLMSmoothing()
+  const { translate } = useTextToSign()
   const { speak } = useTTS()
+
+  // Hearing user sends text → just show it. No auto sign playback.
+  const handleTypedMessage = useCallback((text) => {
+    addMessage({
+      id:         Date.now(),
+      sender:     'hearing',
+      text,
+      viaSigning: false,
+      timestamp:  new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+    })
+  }, [addMessage])
+
+  // The "Play in sign language" button translates on demand (cached per message)
+  // then opens the sequence player.
+  const requestSign = useCallback(async (id, text) => {
+    const cached = signCache[id]
+    if (cached) { setSignSeq({ items: cached, text }); return }
+
+    setLoadingSignId(id)
+    const items = await translate(text)
+    setLoadingSignId(null)
+    if (items.length) {
+      setSignCache(prev => ({ ...prev, [id]: items }))
+      setSignSeq({ items, text })
+    }
+  }, [signCache, translate])
 
   const handleSendToChat = useCallback(async (words) => {
     if (!words?.length) return
@@ -40,34 +74,9 @@ export default function App() {
       <header className="app-header">
         <span className="app-name">Sign2Chat</span>
         <div className="header-right">
-          <span className="user-badge">
-            <span className="user-dot deaf" />
-            Deaf user
-          </span>
-          <span className="user-badge">
-            <span className="user-dot hearing" />
-            Hearing user
-          </span>
-
-          <div className="lang-toggle" role="group" aria-label="Output language">
-            <button
-              className={`lang-btn${lang === 'en' ? ' active' : ''}`}
-              onClick={() => setLang('en')}
-            >
-              EN
-            </button>
-            <button
-              className={`lang-btn${lang === 'ar' ? ' active' : ''}`}
-              onClick={() => setLang('ar')}
-            >
-              AR
-            </button>
-          </div>
-
-          <span className="live-badge">
-            <span className="live-dot" />
-            Live
-          </span>
+          <button className="ref-open-btn" onClick={() => setShowReference(true)}>
+            📖 Sign reference
+          </button>
         </div>
       </header>
 
@@ -89,11 +98,23 @@ export default function App() {
 
         <ChatPanel
           messages={messages}
-          onTypedMessage={addTypedMessage}
+          onTypedMessage={handleTypedMessage}
           isSigning={isSigning}
           lang={lang}
+          onRequestSign={requestSign}
+          loadingSignId={loadingSignId}
         />
       </main>
+
+      {showReference && <SignReference onClose={() => setShowReference(false)} />}
+
+      {signSeq && (
+        <SignSequencePlayer
+          items={signSeq.items}
+          text={signSeq.text}
+          onClose={() => setSignSeq(null)}
+        />
+      )}
     </div>
   )
 }

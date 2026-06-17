@@ -771,3 +771,279 @@ body {
   flex: 1;
   overflow: hidden;
 }
+
+/* ─────────────────────────────────────────────
+   Sign reference dictionary
+───────────────────────────────────────────── */
+.ref-open-btn {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 12px;
+  border: 0.5px solid var(--border-strong);
+  border-radius: 8px;
+  background: var(--bg-elevated);
+  color: var(--text-hi);
+  font-size: 12px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background 0.15s, box-shadow 0.15s;
+}
+.ref-open-btn:hover { background: var(--bg-surface); box-shadow: var(--shadow-xs); }
+
+.ref-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.35);
+  backdrop-filter: blur(3px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  z-index: 100;
+}
+
+.ref-modal {
+  display: flex;
+  flex-direction: column;
+  width: min(1000px, 100%);
+  max-height: 90vh;
+  background: var(--bg-surface);
+  border: 0.5px solid var(--border-strong);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+  overflow: hidden;
+}
+
+.ref-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 16px 20px;
+  border-bottom: 0.5px solid var(--border);
+}
+.ref-count { color: var(--text-md); font-size: 12px; font-weight: 600; }
+.ref-close {
+  margin-left: auto;
+  border: none;
+  background: transparent;
+  color: var(--text-md);
+  font-size: 15px;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 8px;
+}
+.ref-close:hover { background: var(--bg-overlay); color: var(--text-hi); }
+
+.ref-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px 20px;
+  border-bottom: 0.5px solid var(--border);
+}
+.ref-search {
+  width: 100%;
+  padding: 9px 13px;
+  border: 0.5px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  background: var(--bg-elevated);
+  color: var(--text-hi);
+  font-size: 14px;
+  font-family: inherit;
+  outline: none;
+}
+.ref-search:focus { border-color: var(--border-focus); }
+
+.ref-cats { display: flex; flex-wrap: wrap; gap: 6px; }
+.ref-cat {
+  padding: 4px 11px;
+  border: 0.5px solid var(--border-strong);
+  border-radius: 999px;
+  background: var(--bg-elevated);
+  color: var(--text-md);
+  font-size: 12px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+.ref-cat:hover { color: var(--text-hi); }
+.ref-cat.active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+
+.ref-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 14px;
+  padding: 18px 20px;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+}
+.ref-empty {
+  grid-column: 1 / -1;
+  text-align: center;
+  color: var(--text-md);
+  font-size: 14px;
+  padding: 32px 0;
+}
+.ref-empty code {
+  background: var(--bg-overlay);
+  padding: 1px 6px;
+  border-radius: 5px;
+  font-size: 12px;
+}
+
+.ref-card {
+  margin: 0;
+  border: 0.5px solid var(--border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  background: var(--bg-elevated);
+  cursor: pointer;
+  transition: box-shadow 0.15s, transform 0.15s;
+}
+.ref-card:hover { box-shadow: var(--shadow-sm); transform: translateY(-1px); }
+.ref-video {
+  display: block;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  background: #000;
+}
+.ref-caption {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  padding: 8px 11px;
+}
+.ref-label { font-size: 13px; font-weight: 600; color: var(--text-hi); }
+.ref-cat-tag { font-size: 10px; font-weight: 600; color: var(--text-lo); text-transform: uppercase; letter-spacing: 0.3px; }
+
+/* Header + controls stay fixed; only the grid scrolls. */
+.ref-header, .ref-controls { flex-shrink: 0; }
+
+/* ── Full-size video player (lightbox over the dictionary) ───────────── */
+.player-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  z-index: 110;
+}
+.player-box {
+  display: flex;
+  flex-direction: column;
+  width: min(640px, 100%);
+  background: var(--bg-surface);
+  border: 0.5px solid var(--border-strong);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+  overflow: hidden;
+}
+.player-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 18px;
+  border-bottom: 0.5px solid var(--border);
+}
+.player-title { font-size: 15px; font-weight: 700; color: var(--text-hi); }
+.player-stage {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #000;
+}
+.player-video {
+  display: block;
+  width: 100%;
+  max-height: 70vh;
+  aspect-ratio: 4 / 3;
+  object-fit: contain;
+  background: #000;
+}
+.player-nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.45);
+  color: #fff;
+  font-size: 26px;
+  line-height: 1;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.player-nav:hover { background: rgba(0, 0, 0, 0.7); }
+.player-nav.prev { left: 12px; }
+.player-nav.next { right: 12px; }
+
+/* Sequence player: word strip + replay below the video */
+.seq-footer {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border-top: 0.5px solid var(--border);
+}
+.seq-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  flex: 1;
+}
+.seq-chip {
+  padding: 4px 11px;
+  border: 0.5px solid var(--border-strong);
+  border-radius: 999px;
+  background: var(--bg-elevated);
+  color: var(--text-md);
+  font-size: 12px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+.seq-chip.played { color: var(--text-hi); }
+.seq-chip.active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+.seq-replay { flex-shrink: 0; }
+
+/* "Play in sign language" action under a hearing message */
+.play-sign-btn {
+  align-self: flex-end;
+  margin-top: 5px;
+  padding: 4px 11px;
+  border: 0.5px solid var(--border-strong);
+  border-radius: 999px;
+  background: var(--bg-surface);
+  color: var(--accent);
+  font-size: 12px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.play-sign-btn:hover:not(:disabled) { background: var(--accent-dim); }
+.play-sign-btn:disabled { opacity: 0.6; cursor: default; }

@@ -1,4 +1,4 @@
-export default function ChatMessage({ sender, text, arabic, english, timestamp, viaSigning, lang }) {
+export default function ChatMessage({ id, sender, text, arabic, english, timestamp, viaSigning, onRequestSign, isLoadingSign }) {
   const isDeaf     = sender === 'deaf'
   const isBilingual = isDeaf && arabic && english
 
@@ -21,6 +21,16 @@ export default function ChatMessage({ sender, text, arabic, english, timestamp, 
         )}
         {viaSigning && <span className="signed-chip">✋ signed</span>}
       </div>
+
+      {!isDeaf && (
+        <button
+          className="play-sign-btn"
+          onClick={() => onRequestSign(id, text)}
+          disabled={isLoadingSign}
+        >
+          {isLoadingSign ? '⏳ Translating…' : '👐 Play in sign language'}
+        </button>
+      )}
     </div>
   )
 }

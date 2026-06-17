@@ -12,6 +12,10 @@ dist
 dist-ssr
 *.local
 
+# Generated reference sign videos (copied from ../UAE100 by scripts/copy-reference-videos.mjs)
+public/reference/
+public/reference_index.json
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
