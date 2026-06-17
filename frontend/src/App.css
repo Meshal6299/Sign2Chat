@@ -426,12 +426,12 @@ body {
 .prediction-top {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 10px;
-  margin-bottom: 8px;
 }
 
 .pred-word {
-  font-size: 28px;
+  font-size: 72px;
   font-weight: 700;
   color: var(--text-hi);
   letter-spacing: -0.8px;

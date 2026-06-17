@@ -1,8 +1,8 @@
 export const MAX_FRAMES = 180
 export const FEATURE_DIM = 165
 export const NUM_CLASSES = 100
-export const PREDICT_EVERY = 60
-export const MIN_FRAMES_FOR_INFERENCE = 60
+export const PREDICT_EVERY = 30
+export const MIN_FRAMES_FOR_INFERENCE = 30
 export const CONFIDENCE_CONFIRMED = 0.8
 export const CONFIDENCE_UNCERTAIN = 0.5
 // Minimum confidence for a motion-gated sign's top prediction to enter the sentence
@@ -25,12 +25,12 @@ export const HANDS_AWAY_MS = 5000
 
 // ── Motion-gated sign detection ────────────────────────────────────────────────
 export const MOTION_START_THRESHOLD = 0.04   // motion above this = a sign started
-export const MOTION_STOP_THRESHOLD  = 0.008  // motion below this = sign may be ending (lower = harder to cancel)
+export const MOTION_STOP_THRESHOLD  = 0.001  // motion below this = sign may be ending (lower = harder to cancel)
 export const PAUSE_FRAMES           = 18     // consecutive low-motion frames = sign complete (higher = harder to cancel)
 export const MIN_SIGN_FRAMES        = 20     // ignore motion bursts shorter than this (noise)
 export const MAX_SIGN_FRAMES        = 180    // hard cap — force inference if a sign runs too long
 export const FINALIZE_FRAMES        = 150    // no-hands frames before finalizing sentence (~5s)
-export const TRACKING_GRACE_FRAMES  = 10     // tolerate this many lost-tracking frames mid-sign
+export const TRACKING_GRACE_FRAMES  = 20     // tolerate this many lost-tracking frames mid-sign
 
 // Two thresholds (hysteresis) prevent flickering on borderline motion:
 //   START is higher → only deliberate movement begins a sign
